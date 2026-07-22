@@ -303,6 +303,17 @@
     }
   }
 
+  /* ---------------- Gauge card + lọc alarm theo hệ ---------------- */
+  function gaugeCard(name, uid, label) {
+    var uid2 = uid || S.activeUnit;
+    return '<div class="card"><div class="card__body" style="display:grid;gap:9px;justify-items:center">' +
+      gaugeBox(name, uid2, { size: 148, label: label || S.spec(name).d }) +
+      '<div style="width:100%">' + bandBox(name, uid2) + '</div></div></div>';
+  }
+  function sysAlarms(names) {
+    return S.alarms.filter(function (a) { var p = a.id.split('.'); return p[0] === S.activeUnit && names.indexOf(p[1]) >= 0; });
+  }
+
   /* ---------------- Alarm rows (dùng chung) ---------------- */
   function alarmRows(list, opts) {
     opts = opts || {};
@@ -350,6 +361,7 @@
     icon: icon, badge: badge, tagBadge: tagBadge, valHTML: valHTML,
     kpi: kpi, metric: metric, cell: cell, band: band, bandMini: bandMini, bandBox: bandBox,
     gauge: gauge, gaugeBox: gaugeBox, spark: spark, trend: trend, legend: legend,
-    live: live, dl: dl, refresh: refresh, unitTabs: unitTabs, alarmRows: alarmRows, ST: ST
+    live: live, dl: dl, refresh: refresh, unitTabs: unitTabs, alarmRows: alarmRows,
+    gaugeCard: gaugeCard, sysAlarms: sysAlarms, ST: ST
   };
 })(window);
