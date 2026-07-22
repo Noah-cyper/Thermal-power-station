@@ -121,12 +121,17 @@
 }
 @media (max-width: 1180px) {
   .app { grid-template-columns: 68px 1fr; }
+  .brand { justify-content: center; padding: 0; }
   .brand__text, .nav__label, .sidebar__foot, .nav__item span { display: none; }
   .nav__item { justify-content: center; padding: 10px; }
   .nav__item.is-active::before { display: none; }
   .layout-rail { grid-template-columns: 1fr; }
   .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .topbar { gap: 10px; padding: 0 14px; }
+  .topbar__chips .chip { display: none; }
+  .topbar__title h1 { white-space: nowrap; font-size: 15px; }
+  .topbar__title p { display: none; }
 }
 @media (max-width: 720px) {
   .content { padding: 14px; }
