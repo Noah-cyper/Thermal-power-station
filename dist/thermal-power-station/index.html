@@ -1,0 +1,2809 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ThermoSCADA — Nhà máy Nhiệt điện</title>
+  <meta name="description" content="Hệ SCADA trình bày trên web cho nhà máy nhiệt điện than — HMI mô phỏng, chạy hoàn toàn trên trình duyệt." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 22V13l4-3 4 3v9M18 22v-6l3-2 3 2v6' stroke='white' stroke-width='1.8' fill='none'/%3E%3C/svg%3E" />
+  <style>
+/* =====================================================================
+   THERMOSCADA — Design System
+   Ngôn ngữ thiết kế cho HMI nhà máy nhiệt điện (dark shell + light content).
+   Bảng màu trạng thái đối chiếu chuẩn dataviz: mỗi trạng thái luôn kèm
+   icon + nhãn chữ, không bao giờ chỉ dựa vào màu.
+   ===================================================================== */
+
+:root {
+  /* --- Shell (sidebar + topbar tối) --- */
+  --shell-bg:        #0c1a2e;
+  --shell-bg-2:      #0a1524;
+  --shell-line:      #1c2f49;
+  --shell-chip:      #14273f;
+  --shell-chip-2:    #172c46;
+  --shell-text:      #aab9d1;
+  --shell-text-dim:  #6f83a1;
+  --shell-text-hi:   #ffffff;
+
+  /* --- Content (nền sáng, thẻ trắng) --- */
+  --bg:              #eef1f6;
+  --bg-2:            #e7ebf2;
+  --surface:         #ffffff;
+  --surface-2:       #f7f9fc;
+  --surface-3:       #f0f3f8;
+  --line:            #e2e8f1;
+  --line-2:          #eef1f6;
+  --line-strong:     #d3dbe6;
+
+  /* --- Ink --- */
+  --ink:             #0f1e33;
+  --ink-2:           #37465c;
+  --muted:           #6b7a90;
+  --muted-2:         #93a1b5;
+
+  /* --- Thương hiệu / accent --- */
+  --brand:           #2563eb;
+  --brand-2:         #1d70e0;
+  --brand-ink:       #1a4fb0;
+  --measure:         #2b7fd4;   /* màu số đo (blue) */
+  --brand-wash:      #e8f0fe;
+
+  /* --- Trạng thái (cố định, không theo theme) --- */
+  --ok:              #16a34a;   /* Normal / Validated / Healthy / Online */
+  --ok-strong:       #15803d;
+  --ok-wash:         #e6f6ec;
+  --ok-line:         #b6e2c4;
+
+  --warn:            #e08600;   /* Warning / Degraded */
+  --warn-strong:     #b45c00;
+  --warn-wash:       #fdf1dd;
+  --warn-line:       #f3d59a;
+
+  --alarm:           #dc2626;   /* Alarm / Trip / Offline */
+  --alarm-strong:    #b91c1c;
+  --alarm-wash:      #fdeaea;
+  --alarm-line:      #f3c2c2;
+
+  --info:            #2563eb;
+  --info-wash:       #e8f0fe;
+  --info-line:       #c2d6f7;
+
+  /* --- Chuỗi dữ liệu cho đồ thị (categorical, đã kiểm định CVD) --- */
+  --series-1:        #2b7fd4;   /* blue   */
+  --series-2:        #6b7a90;   /* slate  */
+  --series-3:        #e08600;   /* amber  */
+  --series-4:        #1baf7a;   /* aqua   */
+  --series-5:        #e34948;   /* red    */
+  --series-6:        #8b5cf6;   /* violet */
+
+  /* --- Hình học --- */
+  --r-sm: 6px;
+  --r:    9px;
+  --r-lg: 13px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(15,30,51,.06), 0 1px 3px rgba(15,30,51,.05);
+  --shadow:    0 1px 2px rgba(15,30,51,.06), 0 4px 14px rgba(15,30,51,.07);
+  --shadow-lg: 0 8px 30px rgba(15,30,51,.12);
+
+  /* --- Chữ --- */
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+  --sidebar-w: 236px;
+  --topbar-h: 62px;
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1,h2,h3,h4,p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+svg { display: block; }
+ul { margin: 0; padding: 0; list-style: none; }
+::selection { background: rgba(37,99,235,.18); }
+
+/* Scrollbar */
+* { scrollbar-width: thin; scrollbar-color: #c3cde0 transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #c3cde0; border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: #a9b6cf; background-clip: content-box; }
+
+/* ---------- Tiện ích chữ ---------- */
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.tag-code { font-family: var(--mono); font-size: 11.5px; letter-spacing: .02em; color: var(--muted); }
+.eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--muted);
+}
+.dim { color: var(--muted); }
+
+/* ---------- Trạng thái: chữ + màu ---------- */
+.is-ok    { color: var(--ok-strong); }
+.is-warn  { color: var(--warn-strong); }
+.is-alarm { color: var(--alarm-strong); }
+.is-info  { color: var(--brand-ink); }
+
+/* ---------- Badge (icon + nhãn, không chỉ màu) ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px 2px 7px; border-radius: var(--r-pill);
+  font-size: 11.5px; font-weight: 650; line-height: 1.7;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.badge svg { width: 12px; height: 12px; }
+.badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.badge--ok    { color: var(--ok-strong);    background: var(--ok-wash);    border-color: var(--ok-line); }
+.badge--warn  { color: var(--warn-strong);  background: var(--warn-wash);  border-color: var(--warn-line); }
+.badge--alarm { color: var(--alarm-strong); background: var(--alarm-wash); border-color: var(--alarm-line); }
+.badge--info  { color: var(--brand-ink);    background: var(--info-wash);  border-color: var(--info-line); }
+.badge--muted { color: var(--muted);        background: var(--surface-3);  border-color: var(--line); }
+
+/* Chip nhỏ trên nền tối (topbar) */
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 30px; padding: 0 11px; border-radius: var(--r-pill);
+  background: var(--shell-chip); border: 1px solid var(--shell-line);
+  color: var(--shell-text); font-size: 12.5px; font-weight: 550;
+}
+.chip b { color: var(--shell-text-hi); font-weight: 650; }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.chip svg { width: 14px; height: 14px; opacity: .85; }
+
+/* Nút phân đoạn */
+.seg { display: inline-flex; background: var(--surface-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 2px; }
+.seg button {
+  padding: 4px 12px; border-radius: var(--r-pill); font-size: 12px; font-weight: 600;
+  color: var(--muted); transition: all .12s;
+}
+.seg button.is-active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+
+/* Nút bấm chung */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px;
+  border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line-strong);
+  color: var(--ink-2); font-size: 12.5px; font-weight: 600; transition: all .12s;
+}
+.btn:hover { border-color: #b7c4d6; background: var(--surface-2); }
+.btn svg { width: 14px; height: 14px; }
+.btn--primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn--primary:hover { background: var(--brand-2); }
+.btn--ghost { background: transparent; border-color: transparent; }
+
+/* Animation dấu chấm "live" */
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+
+@keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: .25; } }
+.blink { animation: blink 1s step-start infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .blink { animation: none; }
+}
+
+
+/* =====================================================================
+   THERMOSCADA — Layout: sidebar tối, topbar tối, content sáng
+   ===================================================================== */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------------- Sidebar ---------------- */
+.sidebar {
+  background: linear-gradient(180deg, var(--shell-bg) 0%, var(--shell-bg-2) 100%);
+  border-right: 1px solid var(--shell-line);
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.brand {
+  height: var(--topbar-h); flex: none;
+  display: flex; align-items: center; gap: 11px;
+  padding: 0 18px; border-bottom: 1px solid var(--shell-line);
+}
+.brand__logo { display: grid; place-items: center; filter: drop-shadow(0 2px 6px rgba(37,99,235,.4)); }
+.brand__name { color: #fff; font-weight: 800; font-size: 15px; letter-spacing: .04em; }
+.brand__sub  { color: var(--shell-text-dim); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; }
+
+.nav { flex: 1 1 auto; overflow-y: auto; padding: 12px 12px 8px; min-height: 0; }
+.nav__group { margin-bottom: 6px; }
+.nav__label {
+  padding: 12px 10px 6px; font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--shell-text-dim);
+}
+.nav__item {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  padding: 8.5px 11px; border-radius: var(--r); margin-bottom: 2px;
+  color: var(--shell-text); font-size: 13.5px; font-weight: 550;
+  position: relative; transition: background .12s, color .12s;
+}
+.nav__item svg { width: 18px; height: 18px; flex: none; opacity: .82; }
+.nav__item:hover { background: rgba(255,255,255,.05); color: #dce6f5; }
+.nav__item.is-active {
+  background: linear-gradient(90deg, rgba(37,99,235,.22), rgba(37,99,235,.10));
+  color: #fff;
+}
+.nav__item.is-active svg { opacity: 1; color: #7cc4ff; }
+.nav__item.is-active::before {
+  content: ""; position: absolute; left: -12px; top: 7px; bottom: 7px;
+  width: 3px; border-radius: 0 3px 3px 0; background: var(--brand);
+}
+.nav__badge {
+  margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--alarm); color: #fff; font-size: 10.5px; font-weight: 700;
+  display: grid; place-items: center;
+}
+.nav__badge.is-zero { display: none; }
+
+.sidebar__foot { flex: none; padding: 12px 16px; border-top: 1px solid var(--shell-line); }
+.sidebar__foot .kv { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--shell-text-dim); padding: 2px 0; }
+.sidebar__foot .kv b { color: var(--shell-text); font-weight: 600; }
+
+/* ---------------- Main ---------------- */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+/* ---------------- Topbar ---------------- */
+.topbar {
+  height: var(--topbar-h); flex: none;
+  background: var(--shell-bg); border-bottom: 1px solid var(--shell-line);
+  display: flex; align-items: center; gap: 16px; padding: 0 20px;
+  color: var(--shell-text);
+}
+.topbar__title { display: flex; flex-direction: column; }
+.topbar__title h1 { font-size: 16px; font-weight: 750; color: #fff; letter-spacing: .01em; display: flex; align-items: center; gap: 9px; }
+.topbar__title .tag-ivs {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .06em; color: #bcd6ff;
+  background: rgba(37,99,235,.22); border: 1px solid rgba(124,196,255,.3);
+  padding: 1px 6px; border-radius: 5px;
+}
+.topbar__title p { font-size: 11.5px; color: var(--shell-text-dim); }
+.topbar__spacer { flex: 1 1 auto; }
+.topbar__chips { display: flex; align-items: center; gap: 10px; }
+
+.clock { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; padding: 0 6px; }
+.clock .t { font-size: 15px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.clock .d { font-size: 10.5px; color: var(--shell-text-dim); }
+
+.user { display: flex; align-items: center; gap: 9px; padding-left: 14px; border-left: 1px solid var(--shell-line); }
+.user__av { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#2563eb,#1746a2); color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; letter-spacing: .03em; }
+.user__meta { line-height: 1.25; }
+.user__meta .n { font-size: 12.5px; font-weight: 650; color: #fff; }
+.user__meta .r { font-size: 10.5px; color: var(--shell-text-dim); }
+
+/* ---------------- Content ---------------- */
+.content { flex: 1 1 auto; overflow-y: auto; padding: 20px 22px 34px; outline: none; }
+.content:focus-visible { outline: none; }
+
+/* Grid dựng màn hình */
+.page { max-width: 1720px; margin: 0 auto; }
+.page__head { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.page__head h2 { font-size: 19px; font-weight: 750; letter-spacing: -.01em; }
+.page__head .sub { font-size: 12.5px; color: var(--muted); }
+.page__head .spacer { flex: 1 1 auto; }
+
+.grid { display: grid; gap: 14px; }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid.cols-6 { grid-template-columns: repeat(6, 1fr); }
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-full { grid-column: 1 / -1; }
+
+/* Bố cục 2 cột chính + rail phải */
+.layout-rail { display: grid; grid-template-columns: 1fr 348px; gap: 14px; align-items: start; }
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 1400px) {
+  .layout-rail { grid-template-columns: 1fr 320px; }
+  .grid.cols-6 { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 1180px) {
+  .app { grid-template-columns: 68px 1fr; }
+  .brand { justify-content: center; padding: 0; }
+  .brand__text, .nav__label, .sidebar__foot, .nav__item span { display: none; }
+  .nav__item { justify-content: center; padding: 10px; }
+  .nav__item.is-active::before { display: none; }
+  .layout-rail { grid-template-columns: 1fr; }
+  .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .topbar { gap: 10px; padding: 0 14px; }
+  .topbar__chips .chip { display: none; }
+  .topbar__title h1 { white-space: nowrap; font-size: 15px; }
+  .topbar__title p { display: none; }
+}
+@media (max-width: 720px) {
+  .content { padding: 14px; }
+  .grid.cols-2, .grid.cols-3, .grid.cols-4, .grid.cols-6 { grid-template-columns: 1fr; }
+  .span-2, .span-3, .span-4 { grid-column: span 1; }
+  .topbar__title p { display: none; }
+}
+
+
+/* =====================================================================
+   THERMOSCADA — Components
+   ===================================================================== */
+
+/* ---------------- Card / Panel ---------------- */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+}
+.card__head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 16px 11px; border-bottom: 1px solid var(--line-2);
+}
+.card__head h3 { font-size: 13.5px; font-weight: 700; letter-spacing: .01em; }
+.card__head .sub { font-size: 11.5px; color: var(--muted); }
+.card__head .spacer { flex: 1 1 auto; }
+.card__head svg.ico { width: 16px; height: 16px; color: var(--muted); }
+.card__body { padding: 15px 16px; }
+.card__body.tight { padding: 10px 12px; }
+.card__foot { padding: 9px 16px; border-top: 1px solid var(--line-2); font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+/* ---------------- KPI tile ---------------- */
+.kpi {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 14px 16px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brand); opacity: .0; }
+.kpi--ok::before    { background: var(--ok);    opacity: 1; }
+.kpi--warn::before  { background: var(--warn);  opacity: 1; }
+.kpi--alarm::before { background: var(--alarm); opacity: 1; }
+.kpi--info::before  { background: var(--brand); opacity: 1; }
+.kpi__top { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.kpi__top .ico { width: 17px; height: 17px; color: var(--muted); }
+.kpi__label { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.kpi__val { font-size: 30px; font-weight: 750; letter-spacing: -.02em; line-height: 1.05; display: flex; align-items: baseline; gap: 5px; }
+.kpi__val .unit { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.kpi__sub { font-size: 11.5px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.kpi__spark { margin-top: 8px; }
+
+/* ---------------- Metric row (nhãn · giá trị · trạng thái) ---------------- */
+.metric { display: flex; align-items: center; gap: 12px; padding: 9px 2px; border-bottom: 1px solid var(--line-2); }
+.metric:last-child { border-bottom: none; }
+.metric__ic { width: 30px; height: 30px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; flex: none; color: var(--muted); }
+.metric__ic svg { width: 16px; height: 16px; }
+.metric__main { min-width: 0; flex: 1 1 auto; }
+.metric__name { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.metric__tag { font-family: var(--mono); font-size: 10.5px; color: var(--muted-2); }
+.metric__val { text-align: right; font-variant-numeric: tabular-nums; flex: none; white-space: nowrap; }
+.metric__val .v { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.metric__val .u { font-size: 11px; color: var(--muted); margin-left: 2px; }
+.metric__bar { flex: none; width: 110px; }
+
+/* Stat mini list */
+.statlist { display: grid; gap: 0; }
+
+/* Stat cell (ô số nhỏ trong lưới) */
+.cellgrid { display: grid; gap: 1px; background: var(--line-2); border-radius: var(--r); overflow: hidden; }
+.cell { background: var(--surface); padding: 11px 12px; }
+.cell .k { font-size: 10.5px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.cell .v { font-size: 19px; font-weight: 720; letter-spacing: -.01em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.cell .v .u { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+.cell .foot { font-size: 10.5px; color: var(--muted-2); margin-top: 2px; }
+
+/* ---------------- Bar meter (thanh giá trị / tolerance band) ---------------- */
+.meter { height: 7px; border-radius: 999px; background: var(--surface-3); position: relative; overflow: hidden; }
+.meter__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--brand); transition: width .4s ease; }
+.meter__fill.ok { background: var(--ok); }
+.meter__fill.warn { background: var(--warn); }
+.meter__fill.alarm { background: var(--alarm); }
+
+/* Band meter (giải dung sai green/amber/red + kim) */
+.band { position: relative; height: 12px; border-radius: 999px; overflow: hidden;
+  background: linear-gradient(90deg,
+    var(--alarm-wash) 0 12%, var(--warn-wash) 12% 28%, var(--ok-wash) 28% 72%,
+    var(--warn-wash) 72% 88%, var(--alarm-wash) 88% 100%); }
+.band__ticks { position: absolute; inset: 0; }
+.band__needle { position: absolute; top: -3px; bottom: -3px; width: 2.5px; border-radius: 2px; background: var(--ink); transform: translateX(-50%); transition: left .4s ease; }
+.band__needle.ok { background: var(--ok-strong); }
+.band__needle.warn { background: var(--warn-strong); }
+.band__needle.alarm { background: var(--alarm-strong); }
+.band__sp { position: absolute; top: -2px; bottom: -2px; width: 1.5px; background: rgba(15,30,51,.35); left: 50%; }
+.band-wrap { display: grid; gap: 4px; }
+.band-scale { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+/* ---------------- Radial gauge ---------------- */
+.gauge { display: grid; place-items: center; text-align: center; }
+.gauge svg { overflow: visible; }
+.gauge__val { font-size: 22px; font-weight: 760; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.gauge__val .u { font-size: 11px; font-weight: 600; color: var(--muted); }
+.gauge__label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+
+/* ---------------- Table ---------------- */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tbl th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.tbl td { padding: 9px 12px; border-bottom: 1px solid var(--line-2); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover { background: var(--surface-2); }
+.tbl .num, .tbl .r { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .c { text-align: center; }
+.tbl .code { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+.tbl--rows tbody tr { transition: background .1s; }
+
+/* ---------------- Alarm list ---------------- */
+.alarm-item { display: flex; gap: 11px; padding: 11px 14px; border-bottom: 1px solid var(--line-2); position: relative; }
+.alarm-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.alarm-item--high::before   { background: var(--alarm); }
+.alarm-item--medium::before { background: var(--warn); }
+.alarm-item--low::before    { background: var(--muted-2); }
+.alarm-item__body { flex: 1 1 auto; min-width: 0; }
+.alarm-item__top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.alarm-item__time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.alarm-item__sev { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; }
+.sev-high   { background: var(--alarm-wash); color: var(--alarm-strong); }
+.sev-medium { background: var(--warn-wash);  color: var(--warn-strong); }
+.sev-low    { background: var(--surface-3);  color: var(--muted); }
+.alarm-item__state { margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.state-active { color: var(--alarm-strong); }
+.state-ack    { color: var(--warn-strong); }
+.state-cleared{ color: var(--ok-strong); }
+.alarm-item__tag { font-family: var(--mono); font-size: 12px; font-weight: 650; color: var(--ink); }
+.alarm-item__msg { font-size: 12px; color: var(--ink-2); }
+
+/* ---------------- Comm / device status rows ---------------- */
+.dev-row { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line-2); }
+.dev-row:last-child { border-bottom: none; }
+.dev-row .st { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dev-row .nm { font-size: 12.5px; font-weight: 600; }
+.dev-row .ip { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 4px; }
+.dev-row .ms { margin-left: auto; font-family: var(--mono); font-size: 12px; font-weight: 650; }
+
+/* ---------------- Trend canvas ---------------- */
+.trend { position: relative; width: 100%; }
+.trend canvas { display: block; width: 100%; }
+.trend__legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.trend__legend .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); font-weight: 550; }
+.trend__legend .sw { width: 14px; height: 3px; border-radius: 2px; }
+.trend__legend .sw.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px); height: 2px; }
+
+/* Sparkline inline */
+.spark { display: block; }
+
+/* ---------------- P&ID diagram ---------------- */
+.pid { width: 100%; background:
+    linear-gradient(var(--surface-2) 0 0) padding-box,
+    repeating-linear-gradient(0deg, var(--line-2) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px 26px);
+  border-radius: var(--r); border: 1px solid var(--line);
+}
+.pid svg { width: 100%; height: auto; }
+.pid text { font-family: var(--font); }
+.pid .flow { stroke-dasharray: 7 7; animation: flow 1.1s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -14; } }
+@media (prefers-reduced-motion: reduce) { .pid .flow { animation: none; } }
+.pid .eqbox { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.3; }
+.pid .eqlabel { font-size: 10px; font-weight: 700; fill: var(--ink-2); }
+.pid .eqname { font-size: 8.5px; fill: var(--muted); }
+.pid .isa { fill: #fff; stroke: var(--line-strong); stroke-width: 1.3; }
+.pid .isacode { font-size: 8px; font-weight: 700; fill: var(--muted); }
+.pid .isaval { font-size: 11px; font-weight: 750; fill: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* Instrument bubble (ISA) trong SVG dùng class */
+.legend-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.legend-row .lg { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row .lg .d { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ---------------- Progress ring cluster (health) ---------------- */
+.health-bar { display: grid; gap: 9px; }
+.health-bar .hb { display: grid; grid-template-columns: 78px 1fr 34px; align-items: center; gap: 9px; font-size: 12px; }
+.health-bar .hb .lbl { color: var(--ink-2); font-weight: 600; }
+.health-bar .hb .val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------------- Divider / misc ---------------- */
+.hr { height: 1px; background: var(--line-2); border: none; margin: 12px 0; }
+.row { display: flex; align-items: center; gap: 8px; }
+.wrap { flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mb-2{margin-bottom:8px}
+.gap-lg{gap:14px}
+
+/* Unit selector pill (topbar-ish inside content) */
+.unit-tabs { display: inline-flex; gap: 6px; }
+.unit-tab {
+  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px;
+  border-radius: var(--r); border: 1px solid var(--line-strong); background: var(--surface);
+  font-weight: 650; font-size: 13px; color: var(--ink-2); box-shadow: var(--shadow-sm);
+}
+.unit-tab .d { width: 8px; height: 8px; border-radius: 50%; }
+.unit-tab.is-active { border-color: var(--brand); background: var(--brand-wash); color: var(--brand-ink); }
+
+/* Big value readout (như bảng số trên sơ đồ) */
+.readout { display: inline-flex; flex-direction: column; }
+.readout .v { font-size: 24px; font-weight: 780; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+.readout .v .u { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+/* Equipment status pill trên sơ đồ */
+.eq { background: var(--surface); border: 1px solid var(--line); border-radius: 9px; box-shadow: var(--shadow-sm); padding: 8px 10px; }
+.eq__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.eq__code { font-family: var(--mono); font-size: 11px; font-weight: 650; color: var(--ink-2); }
+.eq__name { font-size: 10px; color: var(--muted); }
+.eq__val { font-size: 17px; font-weight: 760; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+/* Empty / placeholder */
+.empty { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; }
+.empty svg { width: 26px; height: 26px; opacity: .45; margin: 0 auto 6px; }
+
+/* Toast for ack */
+.toast-wrap { position: fixed; right: 20px; bottom: 20px; display: grid; gap: 8px; z-index: 50; }
+.toast { background: var(--ink); color: #fff; padding: 10px 14px; border-radius: var(--r); font-size: 12.5px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; animation: toastin .2s ease; }
+@keyframes toastin { from { opacity: 0; transform: translateY(6px); } }
+
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="7" fill="#2563eb"/><path d="M7 23V13l4.5-3.2L16 13v10M17.5 23v-6.5L21 14l3.5 2.5V23" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/><circle cx="24" cy="9" r="2.2" fill="#7cc4ff"/></svg>
+        </div>
+        <div class="brand__text">
+          <div class="brand__name">THERMOSCADA</div>
+          <div class="brand__sub">Thermal Power Plant</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav" aria-label="Điều hướng chính"></nav>
+
+      <div class="sidebar__foot">
+        <div class="kv"><span>Chế độ</span><b>HMI · Demo</b></div>
+        <div class="kv"><span>Phiên bản</span><b>SCADA 1.0</b></div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar" id="topbar"></header>
+      <main class="content" id="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+
+
+  <script>
+/* ==== js/core/format.js ==== */
+/* =====================================================================
+   THERMOSCADA — Formatting helpers
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  function fmt(v, dp) {
+    if (v === null || v === undefined || Number.isNaN(v)) return '—';
+    dp = dp == null ? 1 : dp;
+    return Number(v).toLocaleString('vi-VN', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  }
+  function fmt0(v) { return fmt(v, 0); }
+  function sign(v, dp) {
+    if (v === null || v === undefined || Number.isNaN(v)) return '—';
+    var s = fmt(Math.abs(v), dp == null ? 1 : dp);
+    return (v > 0 ? '+' : v < 0 ? '−' : '') + s;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function clockTime(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+  function hm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  var DOW = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  function longDate(d) {
+    return DOW[d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  // dao động ngẫu nhiên có xu hướng quay về giá trị nền
+  function drift(cur, base, amp, spring) {
+    var noise = (Math.random() - 0.5) * amp;
+    return cur + (base - cur) * (spring == null ? 0.05 : spring) + noise;
+  }
+  function pct(v, lo, hi) { return clamp((v - lo) / (hi - lo), 0, 1); }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  global.F = {
+    fmt: fmt, fmt0: fmt0, sign: sign, pad: pad,
+    clockTime: clockTime, hm: hm, longDate: longDate,
+    clamp: clamp, lerp: lerp, drift: drift, pct: pct, escapeHtml: escapeHtml
+  };
+})(window);
+
+
+/* ==== js/core/store.js ==== */
+/* =====================================================================
+   THERMOSCADA — Store
+   Mô hình nhà máy (2 tổ máy) + "tag database" (metadata) + pub/sub.
+   Toàn bộ dữ liệu là MÔ PHỎNG, chạy trên trình duyệt — không kết nối thật.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+
+  /* ---- Thông tin nhà máy (demo) ---- */
+  var PLANT = {
+    name: 'ThermoSCADA · NMNĐ Than',
+    site: 'Hải Phòng',
+    config: '2 × 330 MW',
+    proto: 'Ethernet · IEC 60870-5-104',
+    scan: 1000
+  };
+
+  /* ---- Cấu hình tổ máy ---- */
+  var UNITS = [
+    { id: 'S1', name: 'Tổ máy S1', pmax: 330, online: true },
+    { id: 'S2', name: 'Tổ máy S2', pmax: 330, online: true }
+  ];
+
+  /* ---- SPEC: metadata cho từng biến (dùng chung mọi tổ máy) ----
+     d: mô tả · u: đơn vị · isa: mã ISA · dp: số lẻ ·
+     lo/hi: dải hiển thị (gauge/meter) · wl/wh: ngưỡng cảnh báo · al/ah: ngưỡng alarm
+     (đặt -Infinity / Infinity cho phía không dùng)                          */
+  var N = Infinity;
+  var SPEC = {
+    /* ---- Lò hơi & Đốt ---- */
+    msP:   { d: 'Áp suất hơi chính',        u: 'bar',   isa: 'PT-101', dp: 1, lo: 140, hi: 185, wl: 160, wh: 172, al: 152, ah: 178 },
+    msT:   { d: 'Nhiệt độ hơi chính',       u: '°C',    isa: 'TT-102', dp: 0, lo: 480, hi: 580, wl: 528, wh: 552, al: 515, ah: 565 },
+    msF:   { d: 'Lưu lượng hơi chính',      u: 't/h',   isa: 'FT-103', dp: 0, lo: 0,   hi: 1050, wl: -N, wh: 1020, al: -N, ah: 1040 },
+    rhT:   { d: 'Nhiệt độ hơi tái nhiệt',   u: '°C',    isa: 'TT-104', dp: 0, lo: 480, hi: 580, wl: 528, wh: 552, al: 515, ah: 565 },
+    drumL: { d: 'Mức nước bao hơi',         u: 'mm',    isa: 'LT-105', dp: 0, lo: -200, hi: 200, wl: -50, wh: 50, al: -120, ah: 120 },
+    drumP: { d: 'Áp suất bao hơi',          u: 'bar',   isa: 'PT-106', dp: 1, lo: 150, hi: 195, wl: 168, wh: 184, al: 160, ah: 190 },
+    furnP: { d: 'Áp suất buồng lửa',        u: 'mbar',  isa: 'PT-107', dp: 2, lo: -6,  hi: 6,   wl: -3, wh: 2, al: -5, ah: 4 },
+    o2:    { d: 'Ôxy khói (O₂)',            u: '%',     isa: 'AT-108', dp: 1, lo: 0,   hi: 8,   wl: 2.5, wh: 5.0, al: 1.8, ah: 6.0 },
+    coalF: { d: 'Lưu lượng than',           u: 't/h',   isa: 'WT-109', dp: 1, lo: 0,   hi: 175, wl: -N, wh: 170, al: -N, ah: 175 },
+    feedF: { d: 'Lưu lượng nước cấp',       u: 't/h',   isa: 'FT-110', dp: 0, lo: 0,   hi: 1050, wl: -N, wh: 1030, al: -N, ah: 1045 },
+    fgT:   { d: 'Nhiệt độ khói thải',       u: '°C',    isa: 'TT-111', dp: 0, lo: 90,  hi: 170, wl: -N, wh: 150, al: -N, ah: 160 },
+    saT:   { d: 'Nhiệt độ gió cấp',         u: '°C',    isa: 'TT-112', dp: 0, lo: 250, hi: 360, wl: 270, wh: 345, al: 255, ah: 355 },
+
+    /* ---- Tua-bin & Máy phát ---- */
+    spd:   { d: 'Tốc độ tua-bin',           u: 'rpm',   isa: 'ST-201', dp: 0, lo: 2900, hi: 3100, wl: 2985, wh: 3015, al: 2955, ah: 3045 },
+    mw:    { d: 'Công suất tác dụng',       u: 'MW',    isa: 'JT-202', dp: 1, lo: 0,   hi: 345, wl: -N, wh: 335, al: -N, ah: 345 },
+    mvar:  { d: 'Công suất phản kháng',     u: 'MVAr',  isa: 'JT-203', dp: 1, lo: -50, hi: 180, wl: -N, wh: 160, al: -N, ah: 175 },
+    vac:   { d: 'Chân không bình ngưng',    u: 'kPa(a)',isa: 'PT-204', dp: 1, lo: 3,   hi: 20,  wl: -N, wh: 12, al: -N, ah: 16 },
+    gvP:   { d: 'Vị trí van điều tốc',      u: '%',     isa: 'ZT-205', dp: 1, lo: 0,   hi: 100, wl: -N, wh: 98, al: -N, ah: 100 },
+    brgT:  { d: 'Nhiệt độ gối trục #3',     u: '°C',    isa: 'TT-206', dp: 1, lo: 40,  hi: 120, wl: -N, wh: 95, al: -N, ah: 105 },
+    thrT:  { d: 'Nhiệt độ gối chặn',        u: '°C',    isa: 'TT-207', dp: 1, lo: 40,  hi: 120, wl: -N, wh: 90, al: -N, ah: 100 },
+    vib:   { d: 'Độ rung gối #3',           u: 'µm',    isa: 'VT-208', dp: 0, lo: 0,   hi: 150, wl: -N, wh: 80, al: -N, ah: 125 },
+    expD:  { d: 'Giãn nở chênh lệch',       u: 'mm',    isa: 'GT-209', dp: 2, lo: -2,  hi: 6,   wl: -1, wh: 4.5, al: -1.5, ah: 5.2 },
+    ecc:   { d: 'Độ lệch tâm trục',         u: 'µm',    isa: 'GT-210', dp: 0, lo: 0,   hi: 120, wl: -N, wh: 76, al: -N, ah: 100 },
+    stExh: { d: 'Nhiệt độ hơi thoát',       u: '°C',    isa: 'TT-211', dp: 0, lo: 30,  hi: 90,  wl: -N, wh: 65, al: -N, ah: 80 },
+
+    /* ---- Điện · Máy phát · Trạm ---- */
+    genU:  { d: 'Điện áp đầu cực',          u: 'kV',    isa: 'UT-301', dp: 2, lo: 18,  hi: 22,  wl: 19.4, wh: 20.6, al: 19.0, ah: 21.0 },
+    freq:  { d: 'Tần số',                   u: 'Hz',    isa: 'FQ-302', dp: 2, lo: 49,  hi: 51,  wl: 49.8, wh: 50.2, al: 49.5, ah: 50.5 },
+    pf:    { d: 'Hệ số công suất',          u: '',      isa: 'PF-303', dp: 3, lo: 0.8, hi: 1,   wl: 0.85, wh: 1, al: 0.80, ah: 1 },
+    statT: { d: 'Nhiệt độ cuộn stato',      u: '°C',    isa: 'TT-304', dp: 0, lo: 40,  hi: 130, wl: -N, wh: 105, al: -N, ah: 120 },
+    rotT:  { d: 'Nhiệt độ rôto (kích từ)',  u: '°C',    isa: 'TT-305', dp: 0, lo: 40,  hi: 130, wl: -N, wh: 110, al: -N, ah: 125 },
+    exI:   { d: 'Dòng kích từ',             u: 'A',     isa: 'IT-306', dp: 0, lo: 0,   hi: 3200,wl: -N, wh: 3000, al: -N, ah: 3150 },
+    hvU:   { d: 'Điện áp thanh cái 220kV',  u: 'kV',    isa: 'UT-307', dp: 1, lo: 205, hi: 245, wl: 210, wh: 238, al: 200, ah: 245 },
+
+    /* ---- Nước cấp · Ngưng tụ · Khử khí ---- */
+    condL: { d: 'Mức nước bình ngưng',      u: 'mm',    isa: 'LT-401', dp: 0, lo: -200, hi: 200, wl: -80, wh: 80, al: -140, ah: 140 },
+    deaP:  { d: 'Áp suất khử khí',          u: 'bar',   isa: 'PT-402', dp: 2, lo: 4,   hi: 12,  wl: 6.5, wh: 9.5, al: 5.5, ah: 10.5 },
+    deaT:  { d: 'Nhiệt độ khử khí',         u: '°C',    isa: 'TT-403', dp: 0, lo: 140, hi: 200, wl: 158, wh: 182, al: 150, ah: 190 },
+    deaL:  { d: 'Mức bình khử khí',         u: 'mm',    isa: 'LT-404', dp: 0, lo: -300, hi: 300, wl: -120, wh: 120, al: -200, ah: 200 },
+    bfpP:  { d: 'Áp đẩy bơm nước cấp',      u: 'bar',   isa: 'PT-405', dp: 1, lo: 150, hi: 220, wl: 175, wh: 208, al: 165, ah: 215 },
+    bfpF:  { d: 'Lưu lượng bơm cấp',        u: 't/h',   isa: 'FT-406', dp: 0, lo: 0,   hi: 1100, wl: -N, wh: 1060, al: -N, ah: 1080 },
+    hwT:   { d: 'Nhiệt độ nước ngưng',      u: '°C',    isa: 'TT-407', dp: 0, lo: 20,  hi: 60,  wl: -N, wh: 48, al: -N, ah: 55 },
+    fwhT:  { d: 'Nhiệt độ nước cấp ra',     u: '°C',    isa: 'TT-408', dp: 0, lo: 200, hi: 290, wl: 240, wh: 278, al: 230, ah: 285 },
+
+    /* ---- Nước làm mát · Tháp giải nhiệt ---- */
+    cwInT: { d: 'Nhiệt độ nước làm mát vào',u: '°C',    isa: 'TT-501', dp: 1, lo: 20,  hi: 40,  wl: -N, wh: 34, al: -N, ah: 38 },
+    cwOutT:{ d: 'Nhiệt độ nước làm mát ra', u: '°C',    isa: 'TT-502', dp: 1, lo: 25,  hi: 52,  wl: -N, wh: 45, al: -N, ah: 48 },
+    cwF:   { d: 'Lưu lượng nước tuần hoàn', u: 'm³/h',  isa: 'FT-503', dp: 0, lo: 0,   hi: 42000, wl: 30000, wh: N, al: 26000, ah: N },
+    ctBasT:{ d: 'Nhiệt độ bể tháp',         u: '°C',    isa: 'TT-504', dp: 1, lo: 20,  hi: 45,  wl: -N, wh: 38, al: -N, ah: 42 },
+    ctApp: { d: 'Approach tháp giải nhiệt', u: '°C',    isa: 'TT-505', dp: 1, lo: 2,   hi: 12,  wl: -N, wh: 9, al: -N, ah: 11 },
+    cwP:   { d: 'Áp đẩy bơm tuần hoàn',     u: 'bar',   isa: 'PT-506', dp: 2, lo: 1,   hi: 4,   wl: 1.8, wh: 3.2, al: 1.5, ah: 3.6 },
+
+    /* ---- Cấp nhiên liệu (than) ---- */
+    bunkL: { d: 'Mức than bunker',          u: '%',     isa: 'LT-601', dp: 0, lo: 0,   hi: 100, wl: 20, wh: N, al: 10, ah: N },
+    feedR: { d: 'Tốc độ máy cấp than',      u: 't/h',   isa: 'WT-602', dp: 1, lo: 0,   hi: 45,  wl: -N, wh: 42, al: -N, ah: 45 },
+    millT: { d: 'Nhiệt độ ra máy nghiền',   u: '°C',    isa: 'TT-603', dp: 0, lo: 40,  hi: 110, wl: 65, wh: 95, al: 55, ah: 105 },
+    millI: { d: 'Dòng động cơ máy nghiền',  u: 'A',     isa: 'IT-604', dp: 0, lo: 0,   hi: 120, wl: -N, wh: 105, al: -N, ah: 115 },
+    millDP:{ d: 'Chênh áp máy nghiền',      u: 'mbar',  isa: 'PT-605', dp: 0, lo: 0,   hi: 80,  wl: -N, wh: 62, al: -N, ah: 72 },
+    beltL: { d: 'Tải băng tải than',        u: 't/h',   isa: 'WT-606', dp: 0, lo: 0,   hi: 800, wl: -N, wh: 720, al: -N, ah: 780 },
+
+    /* ---- Khí thải · Quan trắc (CEMS) ---- */
+    so2:   { d: 'SO₂ (quy 6% O₂)',          u: 'mg/Nm³',isa: 'AT-701', dp: 0, lo: 0,   hi: 600, wl: -N, wh: 300, al: -N, ah: 350 },
+    nox:   { d: 'NOx (quy 6% O₂)',          u: 'mg/Nm³',isa: 'AT-702', dp: 0, lo: 0,   hi: 800, wl: -N, wh: 500, al: -N, ah: 650 },
+    dust:  { d: 'Bụi tổng (PM)',            u: 'mg/Nm³',isa: 'AT-703', dp: 1, lo: 0,   hi: 100, wl: -N, wh: 30, al: -N, ah: 50 },
+    co:    { d: 'CO',                       u: 'mg/Nm³',isa: 'AT-704', dp: 0, lo: 0,   hi: 300, wl: -N, wh: 150, al: -N, ah: 200 },
+    opac:  { d: 'Độ mờ khói (opacity)',     u: '%',     isa: 'AT-705', dp: 1, lo: 0,   hi: 40,  wl: -N, wh: 15, al: -N, ah: 20 },
+    stkT:  { d: 'Nhiệt độ ống khói',        u: '°C',    isa: 'TT-706', dp: 0, lo: 80,  hi: 160, wl: -N, wh: 140, al: -N, ah: 150 },
+    fgdEff:{ d: 'Hiệu suất khử SO₂ (FGD)',  u: '%',     isa: 'QT-707', dp: 1, lo: 80,  hi: 100, wl: 90, wh: N, al: 85, ah: N },
+    espI:  { d: 'Dòng trường lọc bụi ESP',  u: 'mA',    isa: 'IT-708', dp: 0, lo: 0,   hi: 1200, wl: 400, wh: N, al: 250, ah: N }
+  };
+
+  /* ---- Trạng thái từ giá trị theo ngưỡng ---- */
+  function statusOf(name, v) {
+    var s = SPEC[name];
+    if (!s || v == null || Number.isNaN(v)) return 'ok';
+    if (v <= s.al || v >= s.ah) return 'alarm';
+    if (v <= s.wl || v >= s.wh) return 'warn';
+    return 'ok';
+  }
+
+  /* ---------------- Store ---------------- */
+  var subs = [];
+  var Store = {
+    PLANT: PLANT,
+    UNITS: UNITS,
+    SPEC: SPEC,
+    activeUnit: 'S1',
+    tickCount: 0,
+    startedAt: new Date(),
+    now: new Date(),
+
+    // state.u[uid] = { field: value } — engine điền
+    u: {},
+    plant: {},           // giá trị cấp nhà máy (lưới, thời tiết, tổng hợp)
+    alarms: [],          // alarm đang hoạt động / lịch sử gần nhất
+    events: [],          // nhật ký sự kiện
+    history: {},         // ring buffer cho trend: history[uid][field] = [..]
+
+    spec: function (name) { return SPEC[name]; },
+    val: function (name, uid) { var o = this.u[uid || this.activeUnit]; return o ? o[name] : null; },
+    stat: function (name, uid) { return statusOf(name, this.val(name, uid)); },
+    unit: function (uid) { return UNITS.filter(function (x) { return x.id === (uid || Store.activeUnit); })[0]; },
+    active: function () { return this.u[this.activeUnit]; },
+
+    setUnit: function (uid) { if (this.activeUnit !== uid) { this.activeUnit = uid; this.emit(); } },
+
+    // đếm alarm chưa ack cho badge sidebar
+    unacked: function () { return this.alarms.filter(function (a) { return a.state === 'active'; }).length; },
+
+    subscribe: function (fn) { subs.push(fn); return function () { subs = subs.filter(function (f) { return f !== fn; }); }; },
+    emit: function () { for (var i = 0; i < subs.length; i++) { try { subs[i](); } catch (e) { console.error(e); } } }
+  };
+
+  Store.statusOf = statusOf;
+  global.Store = Store;
+})(window);
+
+
+/* ==== js/core/engine.js ==== */
+/* =====================================================================
+   THERMOSCADA — Engine (mô phỏng)
+   Sinh dữ liệu "sống" cho HMI: một biến điều khiển "tải" cho mỗi tổ máy,
+   các đại lượng còn lại suy ra theo quan hệ vật lý gần đúng + nhiễu nhỏ.
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, F = global.F;
+  var HKEYS = ['mw', 'msP', 'msT', 'coalF', 'o2', 'brgT', 'vib', 'so2', 'nox', 'dust',
+    'deaP', 'cwOutT', 'freq', 'furnP', 'drumL', 'genU', 'feedF', 'fgT'];
+  var HMAX = 180;
+
+  function set(u, f, target, amp, spring) { u[f] = F.drift(u[f] == null ? target : u[f], target, amp || 0, spring); }
+
+  /* ---- Suy ra toàn bộ đại lượng từ tải (lf = load fraction) ---- */
+  function derive(u, unit) {
+    var lf = u.load / unit.pmax;                 // 0..1
+    var k = u._k;                                // đặc tính riêng của tổ máy
+
+    // Lò hơi
+    set(u, 'msP', 168 - (1 - lf) * 7 + k * 0.6, 0.25);
+    set(u, 'msT', 540 + (lf - 0.9) * 8 + k * 1.2, 0.7);
+    set(u, 'msF', 1010 * lf, 4);
+    set(u, 'rhT', 539 + (lf - 0.9) * 7 + k, 0.7);
+    set(u, 'drumL', k * 4, 6, 0.15);
+    set(u, 'drumP', 178 - (1 - lf) * 6, 0.3);
+    set(u, 'furnP', -0.25 + k * 0.1, 0.35, 0.2);
+    set(u, 'o2', 3.2 + (1 - lf) * 1.7, 0.12);
+    set(u, 'coalF', 165 * lf + k * 1.5, 0.8);
+    set(u, 'feedF', 1005 * lf, 4);
+    set(u, 'fgT', 126 + lf * 14 + u._millBias * 0.4, 0.8);
+    set(u, 'saT', 300 + lf * 40, 1.2);
+
+    // Tua-bin & máy phát
+    set(u, 'spd', 3000, 1.6, 0.3);
+    set(u, 'mw', u.load, 0.4, 0.3);
+    set(u, 'mvar', 60 + lf * 55 + k * 6, 1.5);
+    set(u, 'vac', 6.2 + lf * 1.6, 0.12);
+    set(u, 'gvP', 42 + lf * 54, 0.8);
+    set(u, 'brgT', 70 + lf * 15 + u._vibBias * 3, 0.25);
+    set(u, 'thrT', 66 + lf * 14, 0.25);
+    set(u, 'vib', 36 + lf * 10 + u._vibBias * 22, 1.2);
+    set(u, 'expD', 2.4 + lf * 1.4, 0.06);
+    set(u, 'ecc', 44 + lf * 12, 1.0);
+    set(u, 'stExh', 38 + lf * 16, 0.6);
+
+    // Điện
+    set(u, 'genU', 20.0 + k * 0.05, 0.05);
+    set(u, 'freq', S.plant.freq, 0.0, 1);
+    set(u, 'pf', 0.90 + lf * 0.04, 0.004);
+    set(u, 'statT', 76 + lf * 22, 0.35);
+    set(u, 'rotT', 82 + lf * 24, 0.4);
+    set(u, 'exI', 1800 + lf * 900 + k * 40, 8);
+    set(u, 'hvU', S.plant.hvU, 0.0, 1);
+
+    // Nước cấp · ngưng tụ · khử khí
+    set(u, 'condL', k * 6, 5, 0.15);
+    set(u, 'deaP', 6.4 + lf * 2.4, 0.06);
+    set(u, 'deaT', 158 + lf * 18, 0.5);
+    set(u, 'deaL', k * 12, 10, 0.15);
+    set(u, 'bfpP', 178 + lf * 26, 0.5);
+    set(u, 'bfpF', 1015 * lf, 4);
+    set(u, 'hwT', 32 + lf * 9, 0.3);
+    set(u, 'fwhT', 242 + lf * 32, 0.6);
+
+    // Nước làm mát
+    var amb = S.plant.ambientT;
+    set(u, 'cwInT', amb + 0.6, 0.2);
+    set(u, 'cwOutT', amb + 7.5 + lf * 3.5, 0.25);
+    set(u, 'cwF', 38000 * (unit.online ? 1 : 0) + k * 300, 120);
+    set(u, 'ctBasT', amb + 0.4, 0.2);
+    set(u, 'ctApp', 3.8 + lf * 2.2, 0.15);
+    set(u, 'cwP', 2.4 + lf * 0.4, 0.05);
+
+    // Nhiên liệu (than)
+    set(u, 'bunkL', u._bunk, 0.3);
+    u._bunk = F.clamp(u._bunk - lf * 0.02 + (u._bunk < 45 ? 0.6 : 0), 15, 95); // tiêu hao & nạp lại
+    set(u, 'feedR', 41 * lf, 0.4);
+    set(u, 'millT', 74 + lf * 10 + u._millBias, 0.6);
+    set(u, 'millI', 62 + lf * 40, 1.2);
+    set(u, 'millDP', 34 + lf * 24, 1.0);
+    set(u, 'beltL', 620 * lf, 6);
+
+    // Khí thải (CEMS)
+    var fgd = 96 - (1 - lf) * 2;
+    set(u, 'fgdEff', fgd, 0.15);
+    set(u, 'so2', (900 + lf * 300) * (1 - fgd / 100) + 40, 4);
+    set(u, 'nox', 360 + lf * 90 + (1 - lf) * 30, 6);
+    set(u, 'dust', 14 + lf * 6 + u._millBias * 0.3, 0.7);
+    set(u, 'co', 60 + (1 - lf) * 70, 4);
+    set(u, 'opac', 8 + lf * 3, 0.4);
+    set(u, 'stkT', 118 + lf * 16, 0.7);
+    set(u, 'espI', 620 + lf * 240, 8);
+  }
+
+  function pushHist(uid, f, v) {
+    var h = S.history[uid] || (S.history[uid] = {});
+    var a = h[f] || (h[f] = []);
+    a.push(v);
+    if (a.length > HMAX) a.shift();
+  }
+
+  /* ---- Cảnh báo: quét vi phạm ngưỡng + alarm rời rạc đã seed ---- */
+  var ackedIds = {};
+  function computeAlarms() {
+    var list = [];
+    S.UNITS.forEach(function (unit) {
+      var u = S.u[unit.id];
+      if (!u) return;
+      Object.keys(S.SPEC).forEach(function (name) {
+        var st = S.statusOf(name, u[name]);
+        if (st === 'ok') return;
+        var sp = S.SPEC[name];
+        var id = unit.id + '.' + name;
+        var high = st === 'alarm';
+        var hi = u[name] >= (sp.wh);
+        list.push({
+          id: id, uid: unit.id, tag: sp.isa, isa: sp.isa,
+          msg: sp.d + (hi ? ' cao' : ' thấp') + ' · ' + F.fmt(u[name], sp.dp) + ' ' + sp.u,
+          sev: high ? 'high' : 'medium',
+          ts: u._alarmTs[id] || (u._alarmTs[id] = new Date(S.now)),
+          state: ackedIds[id] ? 'ack' : 'active'
+        });
+      });
+      // dọn timestamp của alarm đã hết
+      Object.keys(u._alarmTs).forEach(function (id) {
+        if (!list.some(function (a) { return a.id === id; })) delete u._alarmTs[id];
+      });
+    });
+    // alarm rời rạc (thiết bị) đã seed
+    S._discrete.forEach(function (d) { list.push(d); });
+    // sắp xếp: active trước, rồi theo mức, rồi thời gian
+    list.sort(function (a, b) {
+      var sv = { high: 0, medium: 1, low: 2 };
+      if ((a.state === 'active') !== (b.state === 'active')) return a.state === 'active' ? -1 : 1;
+      if (sv[a.sev] !== sv[b.sev]) return sv[a.sev] - sv[b.sev];
+      return b.ts - a.ts;
+    });
+    S.alarms = list;
+  }
+
+  S.ackAlarm = function (id) {
+    ackedIds[id] = true;
+    var a = S.alarms.filter(function (x) { return x.id === id; })[0];
+    var d = S._discrete.filter(function (x) { return x.id === id; })[0]; if (d) d.state = 'ack';
+    if (a && S.events) S.events.unshift({ ts: new Date(S.now), type: 'ACK', uid: a.uid, msg: 'Xác nhận cảnh báo ' + a.isa + ' · ' + a.msg, user: 'op.hoan' });
+    computeAlarms(); S.emit();
+  };
+  S.ackAll = function () { S.alarms.forEach(function (a) { ackedIds[a.id] = true; if (a.id.indexOf('DEV') === 0) a.state = 'ack'; }); computeAlarms(); S.emit(); };
+
+  /* ---- Khởi tạo ---- */
+  function init() {
+    S.plant = { freq: 50.0, hvU: 231.5, ambientT: 31.0, ambRH: 78, totalMW: 0, avail: 99.4, netMW: 0, auxPct: 6.8, coalDay: 0 };
+    S.history = {};
+    S.devices = [
+      { id: 'RTU-BOILER-1', ip: '10.20.11.11', role: 'Lò hơi S1', ms: 11, st: 'ok' },
+      { id: 'RTU-TURB-1',   ip: '10.20.11.12', role: 'Tua-bin S1', ms: 13, st: 'ok' },
+      { id: 'RTU-ELEC-1',   ip: '10.20.11.13', role: 'Điện · Trạm', ms: 9, st: 'ok' },
+      { id: 'RTU-BOP-1',    ip: '10.20.11.14', role: 'BOP · Nước làm mát', ms: 16, st: 'ok' },
+      { id: 'CEMS-STACK-1', ip: '10.20.11.21', role: 'Quan trắc khí thải', ms: 22, st: 'ok' },
+      { id: 'RTU-COAL-1',   ip: '10.20.11.31', role: 'Cấp nhiên liệu', ms: 0, st: 'off' }
+    ];
+    S._discrete = [
+      { id: 'DEV-CWP-B', uid: 'S1', tag: 'CWP-1B', isa: 'CWP-1B', msg: 'Bơm tuần hoàn 1B (dự phòng) offline · leg dự phòng', sev: 'medium', ts: new Date(S.now - 41 * 60000), state: 'ack' },
+      { id: 'DEV-SOOT', uid: 'S2', tag: 'SB-204', isa: 'SB-204', msg: 'Máy thổi bụi SB-204 gặp lỗi vị trí · cần kiểm tra', sev: 'low', ts: new Date(S.now - 12 * 60000), state: 'active' }
+    ];
+
+    var t0 = S.now;
+    S.events = [
+      { ts: new Date(t0 - 3 * 60000), type: 'ALARM', uid: 'S1', msg: 'TT-603 Nhiệt độ ra máy nghiền 1A vượt ngưỡng cảnh báo', user: 'Hệ thống' },
+      { ts: new Date(t0 - 8 * 60000), type: 'THAO TÁC', uid: 'S2', msg: 'Khởi động bơm nước ngưng CEP-2B', user: 'op.hoan' },
+      { ts: new Date(t0 - 15 * 60000), type: 'ACK', uid: 'S1', msg: 'Xác nhận cảnh báo CWP-1B offline', user: 'op.hoan' },
+      { ts: new Date(t0 - 22 * 60000), type: 'ĐIỀU ĐỘ', uid: 'S1', msg: 'Nhận lệnh điều độ A0: nâng tải lên 300 MW', user: 'op.tuan' },
+      { ts: new Date(t0 - 36 * 60000), type: 'THAO TÁC', uid: 'S2', msg: 'Chuyển máy nghiền 2E sang chế độ dự phòng', user: 'op.tuan' },
+      { ts: new Date(t0 - 52 * 60000), type: 'CẢNH BÁO', uid: 'S1', msg: 'Máy thổi bụi SB-104 hoàn tất chu trình', user: 'Hệ thống' },
+      { ts: new Date(t0 - 74 * 60000), type: 'ĐỔI CA', uid: '—', msg: 'Giao ca vận hành · ca 2 → ca 3', user: 'Trưởng ca' }
+    ];
+
+    S.UNITS.forEach(function (unit, i) {
+      var u = {
+        load: unit.pmax * (i === 0 ? 0.91 : 0.86),
+        _k: i === 0 ? 0.3 : -0.4,
+        _bunk: i === 0 ? 62 : 71,
+        _millBias: i === 0 ? 14 : 0,   // S1: máy nghiền A nóng dần → kịch bản drift/cảnh báo
+        _vibBias: i === 0 ? 0.15 : 0.05,
+        _loadSP: unit.pmax * (i === 0 ? 0.91 : 0.86),
+        _alarmTs: {}
+      };
+      // mồi 1 lần để mọi field có giá trị
+      derive(u, unit); derive(u, unit); derive(u, unit);
+      S.u[unit.id] = u;
+    });
+
+    seedHistory();
+    S.plant.totalMW = S.u.S1.mw + S.u.S2.mw;
+    S.plant.netMW = S.plant.totalMW * (1 - S.plant.auxPct / 100);
+    computeAlarms();
+  }
+
+  // tạo lịch sử giả cho trend đỡ trống lúc mở màn
+  function seedHistory() {
+    var pts = 150;
+    S.UNITS.forEach(function (unit) {
+      var u = S.u[unit.id];
+      for (var p = pts; p > 0; p--) {
+        var t = 1 - p / pts;
+        var wobble = Math.sin(t * 6 + (unit.id === 'S1' ? 0 : 2)) * 0.05 + (Math.random() - 0.5) * 0.02;
+        var lf = F.clamp((unit.id === 'S1' ? 0.9 : 0.85) + wobble, 0.4, 1);
+        var mw = lf * unit.pmax;
+        pushHist(unit.id, 'mw', mw);
+        pushHist(unit.id, 'msP', 168 - (1 - lf) * 7 + (Math.random() - .5) * .6);
+        pushHist(unit.id, 'msT', 540 + (lf - .9) * 8 + (Math.random() - .5) * 2);
+        pushHist(unit.id, 'coalF', 165 * lf + (Math.random() - .5) * 2);
+        pushHist(unit.id, 'o2', 3.2 + (1 - lf) * 1.7 + (Math.random() - .5) * .2);
+        pushHist(unit.id, 'brgT', 70 + lf * 15 + (Math.random() - .5) * .6);
+        pushHist(unit.id, 'vib', 36 + lf * 10 + (Math.random() - .5) * 3);
+        pushHist(unit.id, 'so2', (900 + lf * 300) * 0.04 + 40 + (Math.random() - .5) * 6);
+        pushHist(unit.id, 'nox', 360 + lf * 90 + (Math.random() - .5) * 10);
+        pushHist(unit.id, 'dust', 14 + lf * 6 + (Math.random() - .5) * 2);
+        pushHist(unit.id, 'freq', 50 + (Math.random() - .5) * .04);
+        pushHist(unit.id, 'furnP', -0.25 + (Math.random() - .5) * .3);
+        pushHist(unit.id, 'drumL', (Math.random() - .5) * 12);
+        pushHist(unit.id, 'genU', 20 + (Math.random() - .5) * .15);
+        pushHist(unit.id, 'deaP', 6.4 + lf * 2.4 + (Math.random() - .5) * .1);
+        pushHist(unit.id, 'cwOutT', 31 + 8.5 + lf * 4 + (Math.random() - .5) * .4);
+        pushHist(unit.id, 'feedF', 1005 * lf + (Math.random() - .5) * 6);
+        pushHist(unit.id, 'fgT', 126 + lf * 14 + (Math.random() - .5) * 2);
+      }
+    });
+  }
+
+  /* ---- Vòng lặp ---- */
+  function step() {
+    S.now = new Date();
+    S.tickCount++;
+
+    // lưới điện chung
+    set(S.plant, 'freq', 50.0, 0.012, 0.1);
+    set(S.plant, 'hvU', 231.5, 0.15, 0.1);
+    set(S.plant, 'ambientT', 31.0, 0.05, 0.05);
+
+    var total = 0;
+    S.UNITS.forEach(function (unit) {
+      var u = S.u[unit.id];
+      // điều độ tải: thỉnh thoảng đổi setpoint
+      if (S.tickCount % 25 === 0) u._loadSP = unit.pmax * F.clamp(0.82 + Math.random() * 0.14, 0.5, 1);
+      u.load += (u._loadSP - u.load) * 0.03;
+
+      // kịch bản drift: S1 máy nghiền A nóng dần → cảnh báo
+      if (unit.id === 'S1') u._millBias = Math.min(24, u._millBias + 0.03);
+
+      derive(u, unit);
+      total += u.mw;
+      HKEYS.forEach(function (f) { pushHist(unit.id, f, u[f]); });
+    });
+
+    // jitter ping thiết bị truyền thông
+    if (S.devices) S.devices.forEach(function (d) { if (d.st !== 'off') d.ms = Math.max(6, Math.round(d.ms + (Math.random() - 0.5) * 4)); });
+
+    S.plant.totalMW = total;
+    S.plant.netMW = total * (1 - S.plant.auxPct / 100);
+    S.plant.coalDay += (S.u.S1.coalF + S.u.S2.coalF) / 3600; // tấn cộng dồn (demo)
+    set(S.plant, 'auxPct', 6.6 + (1 - total / 660) * 1.2, 0.03);
+
+    if (S.tickCount % 3 === 0) computeAlarms();
+    S.emit();
+  }
+
+  var timer = null;
+  global.Engine = {
+    init: init,
+    start: function () { if (!timer) { step(); timer = setInterval(step, S.PLANT.scan); } },
+    stop: function () { clearInterval(timer); timer = null; }
+  };
+})(window);
+
+
+/* ==== js/core/components.js ==== */
+/* =====================================================================
+   THERMOSCADA — Components (render helpers, không phụ thuộc thư viện)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var F = global.F, S = global.Store;
+
+  /* ---------------- Icon set (stroke, 24x24) ---------------- */
+  var P = {
+    gauge: '<path d="M12 14a2 2 0 100-4 2 2 0 000 4zM12 4a8 8 0 018 8M4 12a8 8 0 018-8M13.4 10.6l3.6-3.6"/>',
+    flame: '<path d="M12 3c1 3-2 4-2 7a2 2 0 004 0c0-1 0-2-.5-3 2 1.5 3.5 4 3.5 6a5 5 0 01-10 0c0-3 3-5 5-7z"/>',
+    fan: '<path d="M12 12a3 3 0 100-.01M12 12c0-3 1-6-1-8 3 0 5 2 5 4M12 12c3 0 6 1 8-1 0 3-2 5-4 5M12 12c0 3-1 6 1 8-3 0-5-2-5-4M12 12c-3 0-6-1-8 1 0-3 2-5 4-5"/>',
+    rotor: '<circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/><circle cx="12" cy="12" r="2"/>',
+    drop: '<path d="M12 3s6 6 6 10a6 6 0 01-12 0c0-4 6-10 6-10z"/>',
+    snow: '<path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9M9 5l3 2 3-2M9 19l3-2 3 2"/>',
+    coal: '<path d="M3 8l4-3h10l4 3v8l-4 3H7l-4-3z"/><path d="M3 8l9 3 9-3M12 11v8"/>',
+    bolt: '<path d="M13 3L5 13h6l-1 8 8-11h-6z"/>',
+    smoke: '<path d="M6 20V9l3-4h6l3 4v11M9 9v11M15 9v11M4 20h16"/>',
+    bell: '<path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6zM10 20a2 2 0 004 0"/>',
+    activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+    report: '<path d="M7 3h7l4 4v14H7zM14 3v4h4M9 12h6M9 16h6"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/>',
+    device: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9zM2 9h2M2 15h2M20 9h2M20 15h2M9 2v2M15 2v2M9 20v2M15 20v2"/>',
+    users: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M16 7a3 3 0 010 6M21 20c0-2-1-3-3-4"/>',
+    layers: '<path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 16l9 5 9-5"/>',
+    thermo: '<path d="M12 3a2 2 0 012 2v9a4 4 0 11-4 0V5a2 2 0 012-2z"/>',
+    grid: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    factory: '<path d="M3 21V10l6 4V10l6 4V6l6 4v11zM3 21h18M7 17h2M13 17h2"/>',
+    pump: '<circle cx="12" cy="12" r="7"/><path d="M12 5v7l5 3"/>',
+    check: '<path d="M20 6L9 17l-5-5"/>',
+    alert: '<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',
+    xcirc: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+    wifi: '<path d="M5 12a10 10 0 0114 0M8 15a6 6 0 018 0M12 18h.01"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+    down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+    valve: '<path d="M4 8l8 4 8-4v8l-8-4-8 4zM12 12v4M9 20h6"/>',
+    gen: '<circle cx="12" cy="12" r="8"/><path d="M9 12a3 3 0 016 0M8 9l1 1M16 9l-1 1M12 8v1"/>',
+    press: '<circle cx="12" cy="13" r="7"/><path d="M12 13l4-3M12 6V4M5 8L4 7M19 8l1-1"/>',
+    dot: '<circle cx="12" cy="12" r="4"/>',
+    wind: '<path d="M3 8h10a2 2 0 100-4M3 12h14a2 2 0 110 4M3 16h8a2 2 0 110 4"/>',
+    tower: '<path d="M6 21l3-9M18 21l-3-9M9 12h6M7 3h10l-2 9H9z"/>'
+  };
+  function icon(name, cls, sw) {
+    return '<svg class="' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' +
+      (sw || 1.7) + '" stroke-linecap="round" stroke-linejoin="round">' + (P[name] || P.dot) + '</svg>';
+  }
+
+  /* ---------------- Status ---------------- */
+  var ST = {
+    ok:    { cls: 'ok',    txt: 'Bình thường', ic: 'check' },
+    warn:  { cls: 'warn',  txt: 'Cảnh báo',    ic: 'alert' },
+    alarm: { cls: 'alarm', txt: 'Sự cố',       ic: 'alert' }
+  };
+  function badge(status, text) {
+    var s = ST[status] || ST.ok;
+    return '<span class="badge badge--' + s.cls + '">' + icon(s.ic, '', 2) + (text || s.txt) + '</span>';
+  }
+  // badge tự suy từ tag
+  function tagBadge(name, uid, labelOk) {
+    var st = S.stat(name, uid);
+    return badge(st, st === 'ok' ? (labelOk || 'Bình thường') : null);
+  }
+
+  /* ---------------- Value text (số + đơn vị + màu trạng thái) ---------------- */
+  function valHTML(name, uid, big) {
+    var sp = S.spec(name), v = S.val(name, uid), st = S.stat(name, uid);
+    var cls = st === 'alarm' ? 'is-alarm' : st === 'warn' ? 'is-warn' : '';
+    return '<span class="num ' + cls + '">' + F.fmt(v, sp.dp) + '</span>' +
+      (big ? '' : ' <span class="u dim">' + sp.u + '</span>');
+  }
+
+  /* ---------------- KPI tile ---------------- */
+  function kpi(o) {
+    // o: {label, value, unit, icon, status, sub, spark:{data,color}}
+    var cls = o.status ? 'kpi kpi--' + o.status : 'kpi';
+    var h = '<div class="' + cls + '">';
+    h += '<div class="kpi__top">' + icon(o.icon || 'gauge', 'ico') + '<span class="kpi__label">' + o.label + '</span></div>';
+    h += '<div class="kpi__val num">' + o.value + (o.unit ? ' <span class="unit">' + o.unit + '</span>' : '') + '</div>';
+    if (o.sub) h += '<div class="kpi__sub">' + o.sub + '</div>';
+    if (o.spark) h += '<div class="kpi__spark">' + spark(o.spark.data, { color: o.spark.color, width: 240, height: 30, fill: true }) + '</div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ---------------- Live helpers (cập nhật tại chỗ) ---------------- */
+  // data-live = "uid|name|dp|unit(0/1)|color(0/1)"
+  function dl(name, uid, o) {
+    o = o || {};
+    return 'data-live="' + (uid || S.activeUnit) + '|' + name + '|' + (o.dp == null ? '' : o.dp) + '|' + (o.unit ? 1 : 0) + '|' + (o.color === false ? 0 : 1) + '"';
+  }
+  function live(name, uid, o) {
+    o = o || {};
+    var sp = S.spec(name), uid2 = uid || S.activeUnit, v = S.val(name, uid2), st = S.stat(name, uid2);
+    var dp = o.dp == null ? sp.dp : o.dp;
+    var cls = o.color === false ? '' : (st === 'alarm' ? 'is-alarm' : st === 'warn' ? 'is-warn' : '');
+    return '<span class="num ' + cls + '" ' + dl(name, uid2, o) + '>' + F.fmt(v, dp) + (o.unit ? ' ' + sp.u : '') + '</span>';
+  }
+  function gaugeBox(name, uid, o) {
+    o = o || {}; var uid2 = uid || S.activeUnit;
+    return '<div data-gauge="' + uid2 + '|' + name + '|' + (o.size || 132) + '|' + (o.label || S.spec(name).d) + '">' + gauge(name, uid2, o) + '</div>';
+  }
+  function bandBox(name, uid) { var uid2 = uid || S.activeUnit; return '<div data-band="' + uid2 + '|' + name + '">' + band(name, uid2) + '</div>'; }
+
+  /* ---------------- Metric row ---------------- */
+  function metric(name, uid, opts) {
+    opts = opts || {};
+    var sp = S.spec(name), uid2 = uid || S.activeUnit, v = S.val(name, uid2), st = S.stat(name, uid2);
+    var cls = st === 'alarm' ? 'is-alarm' : st === 'warn' ? 'is-warn' : '';
+    var h = '<div class="metric">';
+    h += '<div class="metric__ic">' + icon(opts.icon || 'dot', '', 1.7) + '</div>';
+    h += '<div class="metric__main"><div class="metric__name">' + (opts.name || sp.d) + '</div><div class="metric__tag">' + sp.isa + '</div></div>';
+    if (opts.bar !== false) h += '<div class="metric__bar" data-meter="' + uid2 + '|' + name + '">' + bandMini(name, uid2) + '</div>';
+    h += '<div class="metric__val"><span class="v ' + cls + '" ' + dl(name, uid2) + '>' + F.fmt(v, sp.dp) + '</span><span class="u">' + sp.u + '</span></div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ---------------- Cell (ô số) ---------------- */
+  function cell(name, uid, opts) {
+    opts = opts || {};
+    var sp = S.spec(name), uid2 = uid || S.activeUnit, v = S.val(name, uid2), st = S.stat(name, uid2);
+    var cls = st === 'alarm' ? 'is-alarm' : st === 'warn' ? 'is-warn' : '';
+    var dotcls = st === 'alarm' ? 'alarm' : st === 'warn' ? 'warn' : 'ok';
+    var h = '<div class="cell">';
+    h += '<div class="k"><span class="dot-st ' + dotcls + '" data-dot="' + uid2 + '|' + name + '"></span>' + (opts.name || sp.d) + '</div>';
+    h += '<div class="v ' + cls + '"><span ' + dl(name, uid2, { color: false }) + '>' + F.fmt(v, sp.dp) + '</span><span class="u">' + sp.u + '</span></div>';
+    if (opts.foot !== false) h += '<div class="foot mono">' + sp.isa + '</div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ---------------- Refresh: cập nhật mọi phần tử data-* tại chỗ ---------------- */
+  function refresh(root) {
+    root = root || document;
+    root.querySelectorAll('[data-live]').forEach(function (el) {
+      var p = el.getAttribute('data-live').split('|');
+      var uid = p[0] || S.activeUnit, name = p[1], sp = S.spec(name); if (!sp) return;
+      var dp = p[2] === '' ? sp.dp : +p[2], u = p[3] === '1', c = p[4] === '1';
+      var v = S.val(name, uid), st = S.stat(name, uid);
+      el.textContent = F.fmt(v, dp) + (u ? ' ' + sp.u : '');
+      if (c) {
+        var isSvg = el.namespaceURI && el.namespaceURI.indexOf('svg') >= 0;
+        if (isSvg) el.style.fill = st === 'alarm' ? 'var(--alarm-strong)' : st === 'warn' ? 'var(--warn-strong)' : '';
+        else { el.classList.remove('is-warn', 'is-alarm'); if (st === 'warn') el.classList.add('is-warn'); else if (st === 'alarm') el.classList.add('is-alarm'); }
+      }
+    });
+    root.querySelectorAll('[data-dot]').forEach(function (el) {
+      var p = el.getAttribute('data-dot').split('|'); var st = S.stat(p[1], p[0]);
+      el.className = 'dot-st ' + (st === 'alarm' ? 'alarm' : st === 'warn' ? 'warn' : 'ok');
+    });
+    root.querySelectorAll('[data-meter]').forEach(function (el) {
+      var p = el.getAttribute('data-meter').split('|'); el.innerHTML = bandMini(p[1], p[0]);
+    });
+    root.querySelectorAll('[data-band]').forEach(function (el) {
+      var p = el.getAttribute('data-band').split('|'); el.innerHTML = band(p[1], p[0]);
+    });
+    root.querySelectorAll('[data-gauge]').forEach(function (el) {
+      var p = el.getAttribute('data-gauge').split('|'); el.innerHTML = gauge(p[1], p[0], { size: +p[2], label: p[3] });
+    });
+  }
+
+  /* ---------------- Band meter (giải dung sai + kim) ---------------- */
+  function bandMini(name, uid) {
+    var sp = S.spec(name), v = S.val(name, uid), st = S.stat(name, uid);
+    var p = F.pct(v, sp.lo, sp.hi) * 100;
+    var cls = st === 'alarm' ? 'alarm' : st === 'warn' ? 'warn' : 'ok';
+    return '<div class="meter"><div class="meter__fill ' + cls + '" style="width:' + p.toFixed(0) + '%"></div></div>';
+  }
+  function band(name, uid) {
+    var sp = S.spec(name), v = S.val(name, uid), st = S.stat(name, uid);
+    var p = (F.pct(v, sp.lo, sp.hi) * 100).toFixed(1);
+    var cls = st === 'alarm' ? 'alarm' : st === 'warn' ? 'warn' : 'ok';
+    var h = '<div class="band-wrap">';
+    h += '<div class="band"><div class="band__sp"></div><div class="band__needle ' + cls + '" style="left:' + p + '%"></div></div>';
+    h += '<div class="band-scale"><span>' + F.fmt(sp.lo, sp.dp) + '</span><span>' + sp.u + '</span><span>' + F.fmt(sp.hi, sp.dp) + '</span></div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ---------------- Radial gauge (SVG) ---------------- */
+  function polar(cx, cy, r, deg) { var a = (deg - 90) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+  function arc(cx, cy, r, a0, a1) {
+    var s = polar(cx, cy, r, a1), e = polar(cx, cy, r, a0);
+    var large = (a1 - a0) <= 180 ? 0 : 1;
+    return 'M' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 0 ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1);
+  }
+  function gauge(name, uid, opts) {
+    opts = opts || {};
+    var sp = S.spec(name), v = S.val(name, uid), st = S.stat(name, uid);
+    var size = opts.size || 132, cx = size / 2, cy = size / 2, r = size / 2 - 12;
+    var A0 = -135, A1 = 135;                     // 270° sweep
+    var frac = F.pct(v, sp.lo, sp.hi);
+    var ang = F.lerp(A0, A1, frac);
+    var col = st === 'alarm' ? 'var(--alarm)' : st === 'warn' ? 'var(--warn)' : 'var(--brand)';
+    var n = polar(cx, cy, r - 4, ang);
+    var h = '<div class="gauge"><svg width="' + size + '" height="' + (size * 0.82).toFixed(0) + '" viewBox="0 0 ' + size + ' ' + (size * 0.82).toFixed(0) + '">';
+    h += '<path d="' + arc(cx, cy, r, A0, A1) + '" fill="none" stroke="var(--surface-3)" stroke-width="9" stroke-linecap="round"/>';
+    h += '<path d="' + arc(cx, cy, r, A0, ang) + '" fill="none" stroke="' + col + '" stroke-width="9" stroke-linecap="round"/>';
+    // vạch chia
+    for (var t = 0; t <= 4; t++) {
+      var ta = F.lerp(A0, A1, t / 4); var p1 = polar(cx, cy, r - 11, ta), p2 = polar(cx, cy, r - 15, ta);
+      h += '<line x1="' + p1[0].toFixed(1) + '" y1="' + p1[1].toFixed(1) + '" x2="' + p2[0].toFixed(1) + '" y2="' + p2[1].toFixed(1) + '" stroke="var(--line-strong)" stroke-width="1.5"/>';
+    }
+    h += '<line x1="' + cx + '" y1="' + cy + '" x2="' + n[0].toFixed(1) + '" y2="' + n[1].toFixed(1) + '" stroke="' + col + '" stroke-width="2.5" stroke-linecap="round"/>';
+    h += '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + col + '"/>';
+    h += '<text x="' + cx + '" y="' + (cy - 2) + '" text-anchor="middle" font-size="20" font-weight="750" fill="var(--ink)" style="font-variant-numeric:tabular-nums">' + F.fmt(v, sp.dp) + '</text>';
+    h += '<text x="' + cx + '" y="' + (cy + 13) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + sp.u + '</text>';
+    h += '</svg><div class="gauge__label">' + (opts.label || sp.d) + '</div></div>';
+    return h;
+  }
+
+  /* ---------------- Sparkline ---------------- */
+  function spark(data, o) {
+    o = o || {};
+    var w = o.width || 120, h = o.height || 28, pad = 2;
+    if (!data || !data.length) return '<svg class="spark" width="' + w + '" height="' + h + '"></svg>';
+    var min = Math.min.apply(null, data), max = Math.max.apply(null, data);
+    var rng = (max - min) || 1, n = data.length;
+    var pts = data.map(function (v, i) {
+      var x = pad + (w - 2 * pad) * i / (n - 1);
+      var y = pad + (h - 2 * pad) * (1 - (v - min) / rng);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    var col = o.color || 'var(--series-1)';
+    var s = '<svg class="spark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">';
+    if (o.fill) s += '<polygon points="' + pad + ',' + (h - pad) + ' ' + pts.join(' ') + ' ' + (w - pad) + ',' + (h - pad) + '" fill="' + col + '" opacity="0.10"/>';
+    s += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + col + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+    s += '</svg>';
+    return s;
+  }
+
+  /* ---------------- Trend chart (canvas, đa chuỗi, 1 trục) ---------------- */
+  function cssvar(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || v; }
+  function trend(canvas, series, o) {
+    o = o || {};
+    var ratio = window.devicePixelRatio || 1;
+    var W = canvas.clientWidth || 600, H = o.height || 240;
+    canvas.width = W * ratio; canvas.height = H * ratio;
+    canvas.style.height = H + 'px';
+    var ctx = canvas.getContext('2d'); ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    var padL = 46, padR = 14, padT = 12, padB = 24;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    // dải giá trị
+    var min = o.min, max = o.max;
+    if (min == null || max == null) {
+      var all = [];
+      series.forEach(function (s) { (s.data || []).forEach(function (v) { if (v != null) all.push(v); }); });
+      if (!all.length) all = [0, 1];
+      min = Math.min.apply(null, all); max = Math.max.apply(null, all);
+      var pad = (max - min) * 0.15 || 1; min -= pad; max += pad;
+    }
+    var rng = (max - min) || 1;
+    var muted = cssvar('--muted-2'), grid = cssvar('--line'), ink = cssvar('--muted');
+    function X(i, n) { return padL + plotW * (n <= 1 ? 0 : i / (n - 1)); }
+    function Y(v) { return padT + plotH * (1 - (v - min) / rng); }
+
+    // lưới ngang + nhãn trục
+    ctx.font = '10px system-ui'; ctx.textBaseline = 'middle';
+    ctx.strokeStyle = grid; ctx.fillStyle = ink; ctx.lineWidth = 1;
+    for (var g = 0; g <= 4; g++) {
+      var val = min + rng * g / 4, y = Y(val);
+      ctx.globalAlpha = g === 0 ? 0.9 : 0.5;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.textAlign = 'right';
+      ctx.fillText(F.fmt(val, o.dp == null ? 0 : o.dp), padL - 8, y);
+    }
+    // nhãn thời gian
+    ctx.textAlign = 'center';
+    var labels = o.xlabels || ['−30′', '−20′', '−10′', 'now'];
+    labels.forEach(function (lb, i) { ctx.fillText(lb, padL + plotW * i / (labels.length - 1), H - padB + 12); });
+
+    // đường
+    series.forEach(function (s) {
+      var d = s.data || []; if (d.length < 2) return;
+      ctx.strokeStyle = cssvar(s.color || '--series-1'); ctx.lineWidth = s.width || 2;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
+      if (s.fill) {
+        ctx.beginPath();
+        d.forEach(function (v, i) { var x = X(i, d.length), y = Y(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+        ctx.lineTo(X(d.length - 1, d.length), padT + plotH); ctx.lineTo(X(0, d.length), padT + plotH); ctx.closePath();
+        ctx.globalAlpha = 0.08; ctx.fillStyle = cssvar(s.color || '--series-1'); ctx.fill(); ctx.globalAlpha = 1;
+      }
+      ctx.beginPath();
+      d.forEach(function (v, i) { var x = X(i, d.length), y = Y(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.stroke();
+      // điểm cuối
+      var lx = X(d.length - 1, d.length), ly = Y(d[d.length - 1]);
+      ctx.setLineDash([]); ctx.fillStyle = cssvar(s.color || '--series-1');
+      ctx.beginPath(); ctx.arc(lx, ly, 3, 0, 7); ctx.fill();
+    });
+    ctx.setLineDash([]);
+
+    // ngưỡng (nếu có)
+    if (o.limit != null) {
+      ctx.strokeStyle = cssvar('--alarm'); ctx.setLineDash([6, 4]); ctx.lineWidth = 1.2; ctx.globalAlpha = .7;
+      var yl = Y(o.limit); ctx.beginPath(); ctx.moveTo(padL, yl); ctx.lineTo(W - padR, yl); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.setLineDash([]);
+    }
+  }
+
+  /* ---------------- Gauge card + lọc alarm theo hệ ---------------- */
+  function gaugeCard(name, uid, label) {
+    var uid2 = uid || S.activeUnit;
+    return '<div class="card"><div class="card__body" style="display:grid;gap:9px;justify-items:center">' +
+      gaugeBox(name, uid2, { size: 148, label: label || S.spec(name).d }) +
+      '<div style="width:100%">' + bandBox(name, uid2) + '</div></div></div>';
+  }
+  function sysAlarms(names) {
+    return S.alarms.filter(function (a) { var p = a.id.split('.'); return p[0] === S.activeUnit && names.indexOf(p[1]) >= 0; });
+  }
+
+  /* ---------------- Alarm rows (dùng chung) ---------------- */
+  function alarmRows(list, opts) {
+    opts = opts || {};
+    if (!list || !list.length) return '<div class="empty">' + icon('check') + '<br>Không có cảnh báo</div>';
+    var sevTxt = { high: 'CAO', medium: 'TB', low: 'THẤP' };
+    return list.map(function (a) {
+      var stCls = a.state === 'active' ? 'state-active' : a.state === 'ack' ? 'state-ack' : 'state-cleared';
+      var stTxt = a.state === 'active' ? 'CHỜ ACK' : a.state === 'ack' ? 'ĐÃ ACK' : 'ĐÃ XÓA';
+      return '<div class="alarm-item alarm-item--' + a.sev + '"><div class="alarm-item__body">' +
+        '<div class="alarm-item__top"><span class="alarm-item__time">' + F.clockTime(a.ts) + '</span>' +
+        '<span class="alarm-item__sev sev-' + a.sev + '">' + sevTxt[a.sev] + '</span>' +
+        '<span class="alarm-item__state ' + stCls + '">' + stTxt + '</span></div>' +
+        '<div class="alarm-item__tag">' + a.uid + ' · ' + a.isa + '</div>' +
+        '<div class="alarm-item__msg">' + a.msg + '</div></div>' +
+        (a.state === 'active' ? '<button class="btn btn--ghost" data-ack="' + a.id + '" title="Xác nhận" style="align-self:center;height:26px;padding:0 10px">Ack</button>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  /* ---------------- Unit selector ---------------- */
+  function unitTabs() {
+    return '<div class="unit-tabs">' + S.UNITS.map(function (u) {
+      var act = u.id === S.activeUnit;
+      var mw = F.fmt(S.val('mw', u.id), 0);
+      var dotc = u.online ? 'var(--ok)' : 'var(--muted-2)';
+      return '<button class="unit-tab' + (act ? ' is-active' : '') + '" data-unit="' + u.id + '">' +
+        '<span class="d" style="background:' + dotc + '"></span>' + u.name +
+        ' <span class="dim num" style="font-weight:600">· ' + mw + ' MW</span></button>';
+    }).join('') + '</div>';
+  }
+
+  function legend(items) {
+    return '<div class="trend__legend">' + items.map(function (it) {
+      return '<span class="lg"><span class="sw ' + (it.dash ? 'dash' : '') + '" style="' + (it.dash ? 'color:' + it.color : 'background:' + it.color) + '"></span>' + it.label + '</span>';
+    }).join('') + '</div>';
+  }
+
+  /* ---------------- Trạng thái chấm nhỏ (cho .k) ---------------- */
+  // thêm style runtime cho dot-st (dùng chung)
+  var stStyle = document.createElement('style');
+  stStyle.textContent = '.dot-st{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}.dot-st.ok{background:var(--ok)}.dot-st.warn{background:var(--warn)}.dot-st.alarm{background:var(--alarm)}';
+  document.head.appendChild(stStyle);
+
+  global.C = {
+    icon: icon, badge: badge, tagBadge: tagBadge, valHTML: valHTML,
+    kpi: kpi, metric: metric, cell: cell, band: band, bandMini: bandMini, bandBox: bandBox,
+    gauge: gauge, gaugeBox: gaugeBox, spark: spark, trend: trend, legend: legend,
+    live: live, dl: dl, refresh: refresh, unitTabs: unitTabs, alarmRows: alarmRows,
+    gaugeCard: gaugeCard, sysAlarms: sysAlarms, ST: ST
+  };
+})(window);
+
+
+/* ==== js/core/router.js ==== */
+/* =====================================================================
+   THERMOSCADA — Hash Router
+   View = { title, subtitle, render(root), update?() }
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var routes = {}, order = [], current = null, unsub = null, onChange = null;
+
+  var Router = {
+    register: function (id, view) { routes[id] = view; if (order.indexOf(id) < 0) order.push(id); },
+    routes: routes,
+    onChange: function (fn) { onChange = fn; },
+    current: function () { return current; },
+
+    go: function (id) { if (location.hash !== '#/' + id) location.hash = '#/' + id; else this._mount(id); },
+
+    _mount: function (id) {
+      var view = routes[id] || routes[order[0]];
+      if (!view) return;
+      if (unsub) { unsub(); unsub = null; }
+      current = id;
+      var root = document.getElementById('view');
+      root.innerHTML = '';
+      try { view.render(root); } catch (e) { root.innerHTML = '<div class="empty">Lỗi hiển thị: ' + e.message + '</div>'; console.error(e); }
+      if (view.update) {
+        var upd = function () { try { view.update(); } catch (e) { console.error(e); } };
+        unsub = global.Store.subscribe(upd);
+        upd();
+      }
+      root.scrollTop = 0;
+      if (onChange) onChange(id, view);
+    },
+
+    start: function () {
+      var self = this;
+      window.addEventListener('hashchange', function () { self._mount(self._id()); });
+      this._mount(this._id());
+    },
+    _id: function () { var h = location.hash.replace('#/', ''); return routes[h] ? h : order[0]; }
+  };
+
+  global.Router = Router;
+})(window);
+
+
+/* ==== js/views/overview.js ==== */
+/* =====================================================================
+   VIEW · Tổng quan nhà máy (Plant Overview)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+
+  /* ---- KPI cấp nhà máy ---- */
+  function kpiCards() {
+    var p = S.plant, n = S.unacked();
+    var fSt = S.statusOf('freq', p.freq);
+    var mwHist = (S.history.S1 && S.history.S1.mw || []).map(function (v, i) { return v + (S.history.S2.mw[i] || 0); });
+    return C.kpi({ label: 'Công suất phát', value: F.fmt(p.totalMW, 0), unit: 'MW', icon: 'bolt', status: 'info',
+        sub: 'Thực phát ' + F.fmt(p.netMW, 0) + ' MW · tự dùng ' + F.fmt(p.auxPct, 1) + '%', spark: { data: mwHist, color: 'var(--series-1)' } }) +
+      C.kpi({ label: 'Tần số lưới', value: F.fmt(p.freq, 2), unit: 'Hz', icon: 'activity', status: fSt === 'ok' ? 'ok' : 'warn',
+        sub: 'Thanh cái 220kV · ' + F.fmt(p.hvU, 1) + ' kV' }) +
+      C.kpi({ label: 'Tổ máy vận hành', value: '2 / 2', unit: '', icon: 'factory', status: 'ok',
+        sub: 'S1 · S2 hòa lưới' }) +
+      C.kpi({ label: 'Cảnh báo hoạt động', value: F.fmt0(n), unit: '', icon: 'bell', status: n > 0 ? 'warn' : 'ok',
+        sub: n > 0 ? 'cần xác nhận (ack)' : 'không có cảnh báo mới' }) +
+      C.kpi({ label: 'Khả dụng (AF)', value: F.fmt(p.avail, 1), unit: '%', icon: 'check', status: 'ok',
+        sub: 'trung bình 30 ngày' }) +
+      C.kpi({ label: 'Than tiêu thụ (ca)', value: F.fmt(p.coalDay + 1840, 0), unit: 'tấn', icon: 'coal', status: 'info',
+        sub: 'ước tính · 2 tổ máy' });
+  }
+
+  /* ---- Sơ đồ dây chuyền công nghệ (P&ID) ---- */
+  function isa(cx, cy, name, tickTo) {
+    var sp = S.spec(name), parts = sp.isa.split('-'), v = F.fmt(S.val(name), sp.dp);
+    var g = '<g>';
+    if (tickTo != null) g += '<line x1="' + cx + '" y1="' + (cy + 17) + '" x2="' + cx + '" y2="' + tickTo + '" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="2 2"/>';
+    g += '<circle class="isa" cx="' + cx + '" cy="' + cy + '" r="17"/>';
+    g += '<text class="isacode" x="' + cx + '" y="' + (cy - 3) + '" text-anchor="middle">' + parts[0] + '</text>';
+    g += '<text class="isacode" x="' + cx + '" y="' + (cy + 7) + '" text-anchor="middle">' + parts[1] + '</text>';
+    g += '<text class="isaval" x="' + cx + '" y="' + (cy + 32) + '" text-anchor="middle" data-live="' + S.activeUnit + '|' + name + '||1|1">' + v + ' ' + sp.u + '</text>';
+    g += '</g>';
+    return g;
+  }
+  function eqBox(x, y, w, h, code, name, fill) {
+    return '<g><rect class="eqbox" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="7"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>' +
+      '<text class="eqlabel" x="' + (x + w / 2) + '" y="' + (y + h - 15) + '" text-anchor="middle">' + code + '</text>' +
+      '<text class="eqname" x="' + (x + w / 2) + '" y="' + (y + h - 4) + '" text-anchor="middle">' + name + '</text></g>';
+  }
+  function pipe(d, color, flow) {
+    return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="4.5" stroke-linecap="round"' + (flow ? ' class="flow"' : '') + '/>';
+  }
+  var STEAM = '#d64545', WATER = '#2b7fd4', COAL = '#7a6350', FLUE = '#94a3b8', ELEC = '#e0a300';
+
+  function pidPlant() {
+    var s = '<svg viewBox="0 0 1160 300" role="img" aria-label="Sơ đồ dây chuyền công nghệ tổ máy">';
+    // ----- Pipes (vẽ trước để nằm dưới) -----
+    s += pipe('M84 205 H120', COAL, true);                             // bunker→mill
+    s += pipe('M196 205 H232', COAL, true);                            // mill→boiler
+    s += pipe('M287 90 V52 H265', FLUE, true);                         // boiler→stack (khói)
+    s += pipe('M342 120 H470', STEAM, true);                           // hơi chính → tua-bin
+    s += pipe('M620 135 H666', '#334155', false);                      // trục tua-bin→máy phát
+    s += pipe('M734 135 H770', ELEC, true);                            // máy phát→MBA
+    s += pipe('M814 135 H900', ELEC, true);                            // MBA→lưới
+    s += pipe('M545 170 V210', WATER, true);                           // tua-bin→bình ngưng
+    s += pipe('M620 234 H700', WATER, true);                           // bình ngưng→tháp (nước nóng)
+    s += pipe('M700 258 V270 H470 V258', WATER, true);                 // tháp→bình ngưng (nước lạnh hồi)
+    s += pipe('M500 234 H452', WATER, true);                           // bình ngưng→khử khí
+    s += pipe('M360 250 H300 V90', WATER, true);                       // khử khí/bơm→lò (nước cấp)
+
+    // ----- Equipment -----
+    s += eqBox(20, 150, 64, 110, 'CB-1A', 'Bunker than');
+    s += eqBox(120, 175, 76, 60, 'MILL-1A', 'Máy nghiền');
+    s += eqBox(232, 70, 110, 190, 'BLR-1', 'Lò hơi', 'rgba(214,69,69,.05)');
+    s += '<path d="M262 250 q10 -22 25 -12 q-6 -18 12 -24 q4 16 16 12 q-2 20 -18 24 z" fill="#f0a030" opacity=".85"/>'; // ngọn lửa
+    s += eqBox(240, 20, 34, 130, 'STK-1', 'Ống khói', '#eef1f6');
+    s += eqBox(470, 100, 150, 70, 'TG-1', 'Tua-bin HP·IP·LP', 'rgba(43,127,212,.05)');
+    s += '<circle class="eqbox" cx="700" cy="135" r="34"/><text class="eqlabel" x="700" y="132" text-anchor="middle" font-size="16">G</text><text class="eqname" x="700" y="146" text-anchor="middle">Máy phát</text>';
+    s += eqBox(770, 108, 44, 54, 'GSU-1', 'MBA', '#eef1f6');
+    s += '<path d="M905 118 l24 0 l-12 -14 z M905 152 l24 0 l-12 14 z" fill="none" stroke="' + ELEC + '" stroke-width="2"/><text class="eqname" x="917" y="170" text-anchor="middle">Lưới 220kV</text>';
+    s += eqBox(500, 210, 120, 48, 'COND-1', 'Bình ngưng', '#eef4fb');
+    s += '<path d="M672 258 h56 l-12 -46 h-32 z" class="eqbox"/><text class="eqlabel" x="700" y="238" text-anchor="middle">CT-1</text><text class="eqname" x="700" y="250" text-anchor="middle">Tháp giải nhiệt</text>';
+    s += eqBox(360, 232, 92, 40, 'DEA/BFP', 'Khử khí + Bơm cấp', '#eef4fb');
+
+    // ----- Instrument bubbles -----
+    s += isa(158, 150, 'coalF', 175);        // than vào nghiền
+    s += isa(372, 72, 'msP', 118);           // áp hơi chính
+    s += isa(430, 72, 'msT', 118);           // nhiệt hơi chính
+    s += isa(300, 55, 'stkT', null);         // nhiệt ống khói
+    s += isa(655, 72, 'mw', 118);            // công suất
+    s += isa(700, 200, 'vac', 210);          // chân không bình ngưng
+    s += isa(760, 240, 'cwOutT', null);      // nước làm mát ra
+    s += isa(792, 78, 'genU', 108);          // điện áp đầu cực
+
+    s += '</svg>';
+    return s;
+  }
+
+  /* ---- Trend công suất 2 tổ máy ---- */
+  function drawTrend(root) {
+    var cv = root.querySelector('#ov-trend'); if (!cv) return;
+    C.trend(cv, [
+      { data: S.history.S1 ? S.history.S1.mw : [], color: '--series-1', width: 2, fill: true },
+      { data: S.history.S2 ? S.history.S2.mw : [], color: '--series-3', width: 2 }
+    ], { height: 210, min: 200, max: 345, dp: 0, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'] });
+  }
+
+  /* ---- Thẻ thiết bị chính ---- */
+  function eqPills() {
+    function pill(icon, name, tag, valName, uid) {
+      var st = S.stat(valName, uid);
+      return '<div class="eq"><div class="eq__top"><span class="eq__code">' + C.icon(icon, '', 1.7) + ' ' + tag + '</span>' +
+        C.badge(st) + '</div><div class="eq__name">' + name + '</div>' +
+        '<div class="eq__val"><span data-live="' + uid + '|' + valName + '||1|1">' + F.fmt(S.val(valName, uid), S.spec(valName).dp) + ' ' + S.spec(valName).u + '</span></div></div>';
+    }
+    var u = S.activeUnit;
+    return pill('flame', 'Lò hơi', 'BLR-1', 'msP', u) +
+      pill('rotor', 'Tua-bin', 'TG-1', 'spd', u) +
+      pill('gen', 'Máy phát', 'GEN-1', 'mw', u) +
+      pill('drop', 'Bình ngưng', 'COND-1', 'vac', u) +
+      pill('tower', 'Tháp giải nhiệt', 'CT-1', 'cwOutT', u) +
+      pill('coal', 'Máy nghiền A', 'MILL-1A', 'millT', u);
+  }
+
+  /* ---- Rail phải ---- */
+  function alarmsRail() { return C.alarmRows(S.alarms.slice(0, 5)); }
+  function commRail() {
+    return (S.devices || []).map(function (d) {
+      var col = d.st === 'off' ? 'var(--alarm)' : d.ms > 20 ? 'var(--warn)' : 'var(--ok)';
+      return '<div class="dev-row"><span class="st" style="background:' + col + '"></span>' +
+        '<span class="nm">' + d.id + '<span class="ip">' + d.ip + '</span></span>' +
+        '<span class="ms" style="color:' + col + '">' + (d.st === 'off' ? 'timeout' : d.ms + ' ms') + '</span></div>';
+    }).join('');
+  }
+  function healthRail() {
+    var ok = 0, warn = 0, alarm = 0;
+    S.UNITS.forEach(function (unit) { Object.keys(S.SPEC).forEach(function (n) { var st = S.stat(n, unit.id); if (st === 'ok') ok++; else if (st === 'warn') warn++; else alarm++; }); });
+    var tot = ok + warn + alarm;
+    var onl = (S.devices || []).filter(function (d) { return d.st !== 'off'; }).length, off = (S.devices || []).length - onl;
+    function bar(lbl, val, tot, col) {
+      return '<div class="hb"><span class="lbl">' + lbl + '</span><div class="meter"><div class="meter__fill" style="width:' + (val / tot * 100).toFixed(0) + '%;background:' + col + '"></div></div><span class="val">' + val + '</span></div>';
+    }
+    return '<div class="health-bar">' +
+      '<div class="eyebrow">Tín hiệu đo (' + tot + ' điểm)</div>' +
+      bar('Bình thường', ok, tot, 'var(--ok)') +
+      bar('Cảnh báo', warn, tot, 'var(--warn)') +
+      bar('Sự cố', alarm, tot, 'var(--alarm)') +
+      '<div class="eyebrow" style="margin-top:8px">Thiết bị mạng (' + (S.devices || []).length + ')</div>' +
+      bar('Trực tuyến', onl, onl + off, 'var(--ok)') +
+      bar('Offline', off, onl + off, 'var(--alarm)') +
+      '</div>';
+  }
+
+  /* ---- Render ---- */
+  V.overview = {
+    title: 'Tổng quan nhà máy',
+    subtitle: S.PLANT.name + ' · ' + S.PLANT.site,
+    render: function (root) {
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Tổng quan nhà máy</h2><span class="sub">Giám sát toàn nhà máy · 2 × 330 MW</span>' +
+            '<div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-6" id="ov-kpi">' + kpiCards() + '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Sơ đồ dây chuyền công nghệ</h3><span class="sub">— ' + S.unit().name + '</span><div class="spacer"></div>' +
+                '<div class="legend-row"><span class="lg"><span class="d" style="background:#d64545"></span>Hơi</span><span class="lg"><span class="d" style="background:#2b7fd4"></span>Nước</span><span class="lg"><span class="d" style="background:#7a6350"></span>Than</span><span class="lg"><span class="d" style="background:#94a3b8"></span>Khói</span></div></div>' +
+                '<div class="card__body"><div class="pid">' + pidPlant() + '</div></div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng công suất phát</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'S1 (MW)', color: 'var(--series-1)' }, { label: 'S2 (MW)', color: 'var(--series-3)' }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="ov-trend"></canvas></div></div></div>' +
+              '<div class="grid cols-6" id="ov-eq">' + eqPills() + '</div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo gần đây</h3><div class="spacer"></div><button class="btn btn--ghost" data-ackall style="height:26px">Ack tất cả</button></div>' +
+                '<div id="ov-alarms">' + alarmsRail() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('wifi', 'ico') + '<h3>Trạng thái truyền thông</h3></div><div class="card__body tight" id="ov-comm">' + commRail() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('check', 'ico') + '<h3>Tình trạng hệ thống</h3></div><div class="card__body" id="ov-health">' + healthRail() + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root);
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var set = function (id, html) { var e = root.querySelector(id); if (e) e.innerHTML = html; };
+      set('#ov-kpi', kpiCards());
+      set('#ov-eq', eqPills());
+      set('#ov-alarms', alarmsRail());
+      set('#ov-comm', commRail());
+      set('#ov-health', healthRail());
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/boiler.js ==== */
+/* =====================================================================
+   VIEW · Lò hơi & Đốt (Boiler & Combustion)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+
+  function u() { return S.activeUnit; }
+  function sysAlarms(names) {
+    return S.alarms.filter(function (a) { var p = a.id.split('.'); return p[0] === S.activeUnit && names.indexOf(p[1]) >= 0; });
+  }
+  var BOILER_TAGS = ['msP', 'msT', 'msF', 'rhT', 'drumL', 'drumP', 'furnP', 'o2', 'coalF', 'feedF', 'fgT', 'saT'];
+
+  function gaugeCard(name, label) {
+    return '<div class="card"><div class="card__body" style="display:grid;gap:9px;justify-items:center">' +
+      C.gaugeBox(name, u(), { size: 148, label: label }) +
+      '<div style="width:100%">' + C.bandBox(name, u()) + '</div></div></div>';
+  }
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#bo-trend'); if (!cv) return;
+    var h = S.history[u()] || {};
+    C.trend(cv, [
+      { data: h.msT || [], color: '--series-1', width: 2 },
+      { data: h.msT ? h.msT.map(function (v) { return v - 1; }) : [], color: '--series-3', width: 2, dash: true }
+    ], { height: 200, min: 500, max: 575, dp: 0, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'], limit: 565 });
+  }
+
+  function threeElement() {
+    var uu = u();
+    return '<div class="cellgrid" style="grid-template-columns:1fr 1fr">' +
+      '<div class="cell" style="grid-column:1/-1;text-align:center">' +
+        '<div class="k" style="justify-content:center"><span class="dot-st" data-dot="' + uu + '|drumL"></span>Mức nước bao hơi</div>' +
+        '<div class="v" style="font-size:30px">' + C.live('drumL', uu, { color: true }) + ' <span class="u">mm</span></div>' +
+      '</div>' +
+      '<div style="grid-column:1/-1;padding:0 12px 10px">' + C.bandBox('drumL', uu) + '</div>' +
+      C.cell('msF', uu, { name: 'Hơi ra' }) +
+      C.cell('feedF', uu, { name: 'Nước cấp vào' }) +
+      '</div>';
+  }
+
+  V.boiler = {
+    title: 'Lò hơi & Đốt',
+    subtitle: 'Boiler & Combustion',
+    render: function (root) {
+      var uu = u();
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Lò hơi & Đốt</h2><span class="sub">Sinh hơi · quá trình cháy · gió–khói</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            gaugeCard('msP', 'Áp suất hơi chính') +
+            gaugeCard('msT', 'Nhiệt độ hơi chính') +
+            gaugeCard('rhT', 'Nhiệt độ hơi tái nhiệt') +
+            gaugeCard('o2', 'Ôxy khói (O₂)') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('drop', 'ico') + '<h3>Hơi & Nước cấp</h3></div><div class="card__body">' +
+                C.metric('msF', uu, { icon: 'activity' }) + C.metric('feedF', uu, { icon: 'drop' }) +
+                C.metric('drumP', uu, { icon: 'press' }) + C.metric('fwhT', uu, { icon: 'thermo' }) +
+                C.metric('saT', uu, { icon: 'wind' }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng nhiệt độ hơi</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Hơi chính', color: 'var(--series-1)' }, { label: 'Hơi tái nhiệt', color: 'var(--series-3)', dash: true }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="bo-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('flame', 'ico') + '<h3>Quá trình đốt & khói</h3></div><div class="card__body">' +
+                C.metric('coalF', uu, { icon: 'coal', bar: false }) + C.metric('o2', uu, { icon: 'wind', bar: false }) +
+                C.metric('furnP', uu, { icon: 'press', bar: false }) + C.metric('fgT', uu, { icon: 'smoke', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Mức bao hơi · điều khiển 3 phần tử</h3></div><div class="card__body">' + threeElement() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Lò hơi ' + uu + '</h3></div><div id="bo-alarms">' + C.alarmRows(sysAlarms(BOILER_TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root);
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var a = root.querySelector('#bo-alarms'); if (a) a.innerHTML = C.alarmRows(sysAlarms(BOILER_TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/turbine.js ==== */
+/* =====================================================================
+   VIEW · Tua-bin & Máy phát (Turbine–Generator)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+
+  function u() { return S.activeUnit; }
+  function sysAlarms(names) {
+    return S.alarms.filter(function (a) { var p = a.id.split('.'); return p[0] === S.activeUnit && names.indexOf(p[1]) >= 0; });
+  }
+  var TAGS = ['spd', 'mw', 'mvar', 'vac', 'gvP', 'brgT', 'thrT', 'vib', 'expD', 'ecc', 'stExh', 'genU', 'pf', 'statT', 'rotT', 'exI'];
+
+  function gaugeCard(name, label) {
+    return '<div class="card"><div class="card__body" style="display:grid;gap:9px;justify-items:center">' +
+      C.gaugeBox(name, u(), { size: 148, label: label }) +
+      '<div style="width:100%">' + C.bandBox(name, u()) + '</div></div></div>';
+  }
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#tb-trend'); if (!cv) return;
+    var h = S.history[u()] || {};
+    C.trend(cv, [{ data: h.vib || [], color: '--series-1', width: 2, fill: true }],
+      { height: 190, min: 20, max: 130, dp: 0, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'], limit: 80 });
+  }
+
+  V.turbine = {
+    title: 'Tua-bin & Máy phát',
+    subtitle: 'Turbine–Generator',
+    render: function (root) {
+      var uu = u();
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Tua-bin & Máy phát</h2><span class="sub">Cơ nhiệt tua-bin · giám sát rung · máy phát</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            gaugeCard('spd', 'Tốc độ tua-bin') +
+            gaugeCard('mw', 'Công suất tác dụng') +
+            gaugeCard('vac', 'Chân không bình ngưng') +
+            gaugeCard('vib', 'Độ rung gối #3') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('rotor', 'ico') + '<h3>Gối trục · Rung · Giãn nở</h3></div><div class="card__body">' +
+                C.metric('brgT', uu, { icon: 'thermo' }) + C.metric('thrT', uu, { icon: 'thermo' }) +
+                C.metric('vib', uu, { icon: 'activity' }) + C.metric('ecc', uu, { icon: 'rotor' }) +
+                C.metric('expD', uu, { icon: 'layers' }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng độ rung gối #3</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Rung (µm)', color: 'var(--series-1)' }, { label: 'Ngưỡng cảnh báo 80', color: 'var(--alarm)', dash: true }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="tb-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('gen', 'ico') + '<h3>Máy phát</h3></div><div class="card__body">' +
+                C.metric('genU', uu, { icon: 'bolt', bar: false }) + C.metric('mvar', uu, { icon: 'activity', bar: false }) +
+                C.metric('pf', uu, { icon: 'gauge', bar: false }) + C.metric('statT', uu, { icon: 'thermo', bar: false }) +
+                C.metric('rotT', uu, { icon: 'thermo', bar: false }) + C.metric('exI', uu, { icon: 'bolt', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('valve', 'ico') + '<h3>Hơi & Điều tốc</h3></div><div class="card__body">' +
+                C.metric('gvP', uu, { icon: 'valve', bar: false }) + C.metric('stExh', uu, { icon: 'thermo', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Tua-bin ' + uu + '</h3></div><div id="tb-alarms">' + C.alarmRows(sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root);
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var a = root.querySelector('#tb-alarms'); if (a) a.innerHTML = C.alarmRows(sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/feedwater.js ==== */
+/* =====================================================================
+   VIEW · Nước cấp · Ngưng tụ · Khử khí (Feedwater / Condensate)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C;
+  var V = global.Views = global.Views || {};
+  var TAGS = ['condL', 'deaP', 'deaT', 'deaL', 'bfpP', 'bfpF', 'hwT', 'fwhT', 'vac'];
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#fw-trend'); if (!cv) return;
+    var h = S.history[S.activeUnit] || {};
+    C.trend(cv, [{ data: h.deaP || [], color: '--series-1', width: 2, fill: true }],
+      { height: 200, min: 5, max: 11, dp: 1, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'] });
+  }
+
+  V.feedwater = {
+    title: 'Nước cấp & Ngưng tụ',
+    subtitle: 'Feedwater · Condensate · Deaerator',
+    render: function (root) {
+      var u = S.activeUnit;
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Nước cấp · Ngưng tụ · Khử khí</h2><span class="sub">Bình ngưng → bơm ngưng → khử khí → bơm cấp → lò</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            C.gaugeCard('deaP', u, 'Áp suất khử khí') +
+            C.gaugeCard('deaT', u, 'Nhiệt độ khử khí') +
+            C.gaugeCard('bfpP', u, 'Áp đẩy bơm cấp') +
+            C.gaugeCard('condL', u, 'Mức bình ngưng') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('drop', 'ico') + '<h3>Chu trình nước cấp</h3></div><div class="card__body">' +
+                C.metric('bfpF', u, { icon: 'pump' }) + C.metric('bfpP', u, { icon: 'press' }) +
+                C.metric('fwhT', u, { icon: 'thermo' }) + C.metric('feedF', u, { icon: 'activity' }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng áp suất khử khí</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Áp khử khí (bar)', color: 'var(--series-1)' }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="fw-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Bình khử khí</h3></div><div class="card__body">' +
+                C.metric('deaP', u, { icon: 'press', bar: false }) + C.metric('deaT', u, { icon: 'thermo', bar: false }) + C.metric('deaL', u, { icon: 'drop', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('snow', 'ico') + '<h3>Bình ngưng</h3></div><div class="card__body">' +
+                C.metric('vac', u, { icon: 'press', bar: false }) + C.metric('condL', u, { icon: 'drop', bar: false }) + C.metric('hwT', u, { icon: 'thermo', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Nước cấp ' + u + '</h3></div><div id="fw-alarms">' + C.alarmRows(C.sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var a = root.querySelector('#fw-alarms'); if (a) a.innerHTML = C.alarmRows(C.sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/cooling.js ==== */
+/* =====================================================================
+   VIEW · Nước làm mát & Tháp giải nhiệt (Cooling Water / Cooling Tower)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var TAGS = ['cwInT', 'cwOutT', 'cwF', 'ctBasT', 'ctApp', 'cwP'];
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#cw-trend'); if (!cv) return;
+    var h = S.history[S.activeUnit] || {};
+    C.trend(cv, [{ data: h.cwOutT || [], color: '--series-1', width: 2, fill: true }],
+      { height: 190, min: 34, max: 50, dp: 1, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'], limit: 45 });
+  }
+
+  function towerSVG(u) {
+    var app = F.fmt(S.val('ctApp', u), 1);
+    return '<div class="pid"><svg viewBox="0 0 340 170" role="img" aria-label="Tháp giải nhiệt">' +
+      // quạt
+      '<circle cx="170" cy="26" r="16" fill="none" stroke="var(--series-1)" stroke-width="2"/>' +
+      '<g class="flow" style="transform-origin:170px 26px"><path d="M170 26 L170 12 M170 26 L182 33 M170 26 L158 33" stroke="var(--series-1)" stroke-width="2" fill="none"/></g>' +
+      '<text x="170" y="8" text-anchor="middle" class="eqname">Quạt CT-FAN</text>' +
+      // thân tháp (hyperbol đơn giản hoá)
+      '<path d="M96 50 L244 50 L224 120 L116 120 Z" fill="rgba(43,127,212,.06)" stroke="var(--line-strong)" stroke-width="1.3"/>' +
+      // fill/nước rơi
+      '<g stroke="var(--series-1)" stroke-width="1" opacity=".5" class="flow">' +
+      '<line x1="130" y1="58" x2="126" y2="112"/><line x1="150" y1="58" x2="148" y2="112"/><line x1="170" y1="58" x2="170" y2="112"/><line x1="190" y1="58" x2="192" y2="112"/><line x1="210" y1="58" x2="214" y2="112"/></g>' +
+      // bể chứa
+      '<rect x="104" y="120" width="132" height="26" rx="3" fill="#eef4fb" stroke="var(--line-strong)" stroke-width="1.3"/>' +
+      '<text x="170" y="137" text-anchor="middle" class="eqlabel">Bể tháp · CT-1</text>' +
+      // bơm tuần hoàn ra
+      '<circle cx="270" cy="133" r="13" fill="#fff" stroke="var(--line-strong)" stroke-width="1.3"/><path d="M270 126v7l5 3" stroke="var(--series-1)" stroke-width="1.5" fill="none"/>' +
+      '<text x="290" y="136" class="eqname">Bơm CWP</text>' +
+      // ghi approach
+      '<text x="40" y="88" class="eqlabel" font-size="9">Approach</text>' +
+      '<text x="40" y="102" class="isaval" font-size="13">' + app + ' °C</text>' +
+      '</svg></div>';
+  }
+
+  function fanCells(u) {
+    var lf = S.val('mw', u) / 330;
+    var fans = [
+      { id: 'CT-FAN-1', sp: Math.round(88 + lf * 8) }, { id: 'CT-FAN-2', sp: Math.round(86 + lf * 9) },
+      { id: 'CT-FAN-3', sp: Math.round(90 + lf * 7) }, { id: 'CT-FAN-4', sp: Math.round(84 + lf * 10) }
+    ];
+    return '<div class="cellgrid" style="grid-template-columns:1fr 1fr">' + fans.map(function (f) {
+      return '<div class="cell"><div class="k"><span class="dot-st ok"></span>' + f.id + '</div>' +
+        '<div class="v">' + f.sp + '<span class="u">%</span></div><div class="foot">Chạy · biến tần</div></div>';
+    }).join('') + '</div>';
+  }
+
+  V.cooling = {
+    title: 'Nước làm mát',
+    subtitle: 'Cooling Water · Cooling Tower',
+    render: function (root) {
+      var u = S.activeUnit;
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Nước làm mát & Tháp giải nhiệt</h2><span class="sub">Nước tuần hoàn · bơm · tháp giải nhiệt</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            C.gaugeCard('cwInT', u, 'Nước làm mát vào') +
+            C.gaugeCard('cwOutT', u, 'Nước làm mát ra') +
+            C.gaugeCard('cwF', u, 'Lưu lượng tuần hoàn') +
+            C.gaugeCard('ctApp', u, 'Approach tháp') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('pump', 'ico') + '<h3>Hệ nước tuần hoàn</h3></div><div class="card__body">' +
+                C.metric('cwF', u, { icon: 'activity' }) + C.metric('cwP', u, { icon: 'press' }) +
+                C.metric('cwInT', u, { icon: 'thermo' }) + C.metric('cwOutT', u, { icon: 'thermo' }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng nhiệt độ nước ra</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Nước ra (°C)', color: 'var(--series-1)' }, { label: 'Ngưỡng 45', color: 'var(--alarm)', dash: true }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="cw-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('tower', 'ico') + '<h3>Tháp giải nhiệt</h3></div><div class="card__body">' + towerSVG(u) +
+                '<div class="mt-3">' + C.metric('ctBasT', u, { icon: 'thermo', bar: false }) + C.metric('ctApp', u, { icon: 'snow', bar: false }) + '</div>' +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('fan', 'ico') + '<h3>Quạt tháp giải nhiệt</h3></div><div class="card__body" id="cw-fans">' + fanCells(u) + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Làm mát ' + u + '</h3></div><div id="cw-alarms">' + C.alarmRows(C.sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var f = root.querySelector('#cw-fans'); if (f) f.innerHTML = fanCells(S.activeUnit);
+      var a = root.querySelector('#cw-alarms'); if (a) a.innerHTML = C.alarmRows(C.sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/fuel.js ==== */
+/* =====================================================================
+   VIEW · Cấp nhiên liệu — than (Fuel / Coal Handling)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var TAGS = ['bunkL', 'feedR', 'millT', 'millI', 'millDP', 'beltL', 'coalF'];
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#fu-trend'); if (!cv) return;
+    var h = S.history[S.activeUnit] || {};
+    C.trend(cv, [{ data: h.coalF || [], color: '--series-1', width: 2, fill: true }],
+      { height: 190, min: 100, max: 175, dp: 0, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'] });
+  }
+
+  // Bảng 5 máy nghiền: A dùng số liệu live (đang nóng), B–D suy ra, E dự phòng
+  function millRows(u) {
+    var lf = S.val('mw', u) / 330;
+    var fr = S.val('feedR', u);
+    var rows = [
+      { id: 'MILL-1A', t: S.val('millT', u), i: S.val('millI', u), dp: S.val('millDP', u), f: fr, st: S.stat('millT', u) },
+      { id: 'MILL-1B', t: 80 + lf * 7, i: 64 + lf * 36, dp: 35 + lf * 21, f: fr * 0.99, st: 'ok' },
+      { id: 'MILL-1C', t: 79 + lf * 8, i: 66 + lf * 34, dp: 37 + lf * 20, f: fr * 1.01, st: 'ok' },
+      { id: 'MILL-1D', t: 81 + lf * 6, i: 63 + lf * 37, dp: 34 + lf * 23, f: fr * 0.97, st: 'ok' },
+      { id: 'MILL-1E', standby: true }
+    ];
+    var stBadge = { ok: '<span class="badge badge--ok"><span class="dot"></span>Chạy</span>', warn: '<span class="badge badge--warn">' + C.icon('alert', '', 2) + 'Cảnh báo</span>', alarm: '<span class="badge badge--alarm">' + C.icon('alert', '', 2) + 'Sự cố</span>' };
+    return '<table class="tbl"><thead><tr><th>Máy nghiền</th><th>Trạng thái</th><th class="r">Cấp than</th><th class="r">Nhiệt ra</th><th class="r">Dòng ĐC</th><th class="r">ΔP</th></tr></thead><tbody>' +
+      rows.map(function (m) {
+        if (m.standby) return '<tr><td class="code">' + m.id + '</td><td><span class="badge badge--muted"><span class="dot"></span>Dự phòng</span></td><td class="r dim">—</td><td class="r dim">—</td><td class="r dim">—</td><td class="r dim">—</td></tr>';
+        var cls = m.st === 'alarm' ? 'is-alarm' : m.st === 'warn' ? 'is-warn' : '';
+        return '<tr><td class="code">' + m.id + '</td><td>' + stBadge[m.st] + '</td>' +
+          '<td class="r num">' + F.fmt(m.f, 1) + '</td>' +
+          '<td class="r num ' + cls + '">' + F.fmt(m.t, 0) + '</td>' +
+          '<td class="r num">' + F.fmt(m.i, 0) + '</td>' +
+          '<td class="r num">' + F.fmt(m.dp, 0) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  V.fuel = {
+    title: 'Cấp nhiên liệu',
+    subtitle: 'Fuel · Coal Handling',
+    render: function (root) {
+      var u = S.activeUnit;
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Cấp nhiên liệu — Than</h2><span class="sub">Kho → băng tải → bunker → máy nghiền → vòi đốt</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            C.gaugeCard('bunkL', u, 'Mức than bunker') +
+            C.gaugeCard('beltL', u, 'Tải băng tải than') +
+            C.gaugeCard('coalF', u, 'Tổng than vào lò') +
+            C.gaugeCard('millT', u, 'Nhiệt độ máy nghiền A') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('coal', 'ico') + '<h3>Máy nghiền than (Mills 1A–1E)</h3><div class="spacer"></div><span class="sub">4 chạy · 1 dự phòng</span></div>' +
+                '<div class="card__body tight" id="fu-mills">' + millRows(u) + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng lượng than vào lò</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Than vào lò (t/h)', color: 'var(--series-1)' }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="fu-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Kho & Vận chuyển</h3></div><div class="card__body">' +
+                C.metric('bunkL', u, { icon: 'coal', bar: false }) + C.metric('beltL', u, { icon: 'activity', bar: false }) + C.metric('feedR', u, { icon: 'pump', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('alert', 'ico') + '<h3>Máy nghiền 1A</h3></div><div class="card__body">' +
+                C.metric('millT', u, { icon: 'thermo', bar: false }) + C.metric('millI', u, { icon: 'bolt', bar: false }) + C.metric('millDP', u, { icon: 'press', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Nhiên liệu ' + u + '</h3></div><div id="fu-alarms">' + C.alarmRows(C.sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var m = root.querySelector('#fu-mills'); if (m) m.innerHTML = millRows(S.activeUnit);
+      var a = root.querySelector('#fu-alarms'); if (a) a.innerHTML = C.alarmRows(C.sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/electrical.js ==== */
+/* =====================================================================
+   VIEW · Điện · Máy phát · Trạm phân phối (Electrical / Switchyard)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var TAGS = ['genU', 'pf', 'statT', 'rotT', 'exI', 'mw', 'mvar'];
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#el-trend'); if (!cv) return;
+    var h = S.history[S.activeUnit] || {};
+    C.trend(cv, [{ data: h.freq || [], color: '--series-1', width: 2 }],
+      { height: 180, min: 49.7, max: 50.3, dp: 2, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'], limit: 50.2 });
+  }
+
+  // Sơ đồ một sợi (single-line diagram)
+  function sld() {
+    function brk(x, y) { return '<rect x="' + (x - 5) + '" y="' + (y - 5) + '" width="10" height="10" fill="#fff" stroke="var(--ink-2)" stroke-width="1.4"/>'; }
+    function liveT(x, y, name, uid, anchor) {
+      var sp = S.spec(name);
+      return '<text x="' + x + '" y="' + y + '" text-anchor="' + (anchor || 'middle') + '" class="isaval" data-live="' + uid + '|' + name + '||1|1">' + F.fmt(S.val(name, uid), sp.dp) + ' ' + sp.u + '</text>';
+    }
+    function gen(cx, cy, label, uid) {
+      return '<g><circle cx="' + cx + '" cy="' + cy + '" r="26" fill="#fff" stroke="var(--series-1)" stroke-width="2"/>' +
+        '<text x="' + cx + '" y="' + (cy - 2) + '" text-anchor="middle" font-size="15" font-weight="750" fill="var(--ink)">' + label + '</text>' +
+        '<text x="' + cx + '" y="' + (cy + 12) + '" text-anchor="middle" font-size="9" fill="var(--muted)">~</text>' +
+        liveT(cx, cy - 36, 'genU', uid, 'middle') + liveT(cx, cy + 46, 'mw', uid, 'middle') + '</g>';
+    }
+    function xfmr(cx, cy) { return '<circle cx="' + cx + '" cy="' + (cy - 6) + '" r="11" fill="none" stroke="var(--ink-2)" stroke-width="1.4"/><circle cx="' + cx + '" cy="' + (cy + 6) + '" r="11" fill="none" stroke="var(--ink-2)" stroke-width="1.4"/>'; }
+    var s = '<div class="pid"><svg viewBox="0 0 680 300" role="img" aria-label="Sơ đồ một sợi trạm điện">';
+    // đường dây
+    s += '<path d="M96 80 H150 M200 80 H320 V150" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>';
+    s += '<path d="M96 220 H150 M200 220 H320 V150" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>';
+    // busbar 220kV
+    s += '<line x1="300" y1="150" x2="640" y2="150" stroke="var(--brand)" stroke-width="5" stroke-linecap="round"/>';
+    s += '<text x="470" y="140" text-anchor="middle" class="eqname">Thanh cái 220kV · C21</text>';
+    s += liveT(628, 140, 'hvU', S.activeUnit, 'end');
+    // feeders
+    s += '<path d="M430 150 V56" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/><path d="M424 62 l6 -8 l6 8" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>';
+    s += '<path d="M560 150 V56" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/><path d="M554 62 l6 -8 l6 8" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>';
+    s += '<text x="430" y="44" text-anchor="middle" class="eqname">Lộ 271</text><text x="560" y="44" text-anchor="middle" class="eqname">Lộ 272</text>';
+    // station service
+    s += '<path d="M360 150 V214" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/>';
+    s += xfmr(360, 232) + '<text x="360" y="262" text-anchor="middle" class="eqname">TD 6kV</text>';
+    // components
+    s += gen(70, 80, 'G1', 'S1') + gen(70, 220, 'G2', 'S2');
+    s += xfmr(175, 80) + '<text x="175" y="104" text-anchor="middle" class="eqname">GSU-1</text>';
+    s += xfmr(175, 220) + '<text x="175" y="244" text-anchor="middle" class="eqname">GSU-2</text>';
+    s += brk(320, 118) + brk(430, 110) + brk(560, 110) + brk(360, 190);
+    // tần số
+    s += '<text x="470" y="176" text-anchor="middle" class="eqlabel">f = </text>' + liveT(500, 176, 'freq', S.activeUnit, 'start');
+    s += '</svg></div>';
+    return s;
+  }
+
+  function lineLoads() {
+    var tot = S.plant.totalMW, p1 = tot * 0.54, p2 = tot * 0.46;
+    return '<div class="cellgrid" style="grid-template-columns:1fr 1fr">' +
+      '<div class="cell"><div class="k"><span class="dot-st ok"></span>Lộ 271</div><div class="v">' + F.fmt(p1, 0) + '<span class="u">MW</span></div><div class="foot">Đóng · 220kV</div></div>' +
+      '<div class="cell"><div class="k"><span class="dot-st ok"></span>Lộ 272</div><div class="v">' + F.fmt(p2, 0) + '<span class="u">MW</span></div><div class="foot">Đóng · 220kV</div></div>' +
+      '</div>';
+  }
+
+  V.electrical = {
+    title: 'Điện & Trạm phân phối',
+    subtitle: 'Electrical · Generator · Switchyard',
+    render: function (root) {
+      var u = S.activeUnit;
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Điện · Máy phát · Trạm phân phối</h2><span class="sub">Máy phát → MBA → thanh cái 220kV → lưới</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            C.gaugeCard('genU', u, 'Điện áp đầu cực') +
+            C.gaugeCard('freq', u, 'Tần số lưới') +
+            C.gaugeCard('mw', u, 'Công suất tác dụng') +
+            C.gaugeCard('pf', u, 'Hệ số công suất') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('grid', 'ico') + '<h3>Sơ đồ một sợi · Trạm 220kV</h3><div class="spacer"></div>' +
+                '<span class="legend-row"><span class="lg"><span class="d" style="background:var(--brand)"></span>Thanh cái</span></span></div>' +
+                '<div class="card__body">' + sld() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng tần số lưới</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'Tần số (Hz)', color: 'var(--series-1)' }, { label: 'Ngưỡng 50,2', color: 'var(--alarm)', dash: true }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="el-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('gen', 'ico') + '<h3>Máy phát ' + u + '</h3></div><div class="card__body">' +
+                C.metric('mvar', u, { icon: 'activity', bar: false }) + C.metric('pf', u, { icon: 'gauge', bar: false }) +
+                C.metric('statT', u, { icon: 'thermo', bar: false }) + C.metric('rotT', u, { icon: 'thermo', bar: false }) + C.metric('exI', u, { icon: 'bolt', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bolt', 'ico') + '<h3>Trạm 220kV · Lộ đường dây</h3></div><div class="card__body">' +
+                C.metric('hvU', u, { icon: 'bolt', bar: false }) + C.metric('freq', u, { icon: 'activity', bar: false }) +
+                '<div class="mt-2" id="el-lines">' + lineLoads() + '</div>' +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Điện ' + u + '</h3></div><div id="el-alarms">' + C.alarmRows(C.sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var l = root.querySelector('#el-lines'); if (l) l.innerHTML = lineLoads();
+      var a = root.querySelector('#el-alarms'); if (a) a.innerHTML = C.alarmRows(C.sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/emissions.js ==== */
+/* =====================================================================
+   VIEW · Khí thải & Quan trắc môi trường (Emissions / CEMS)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var TAGS = ['so2', 'nox', 'dust', 'co', 'opac', 'stkT', 'fgdEff', 'espI'];
+  // Ngưỡng cho phép (tham chiếu QCVN 22 — cột B, hệ số áp dụng), dùng để tính % tuân thủ
+  var LIMIT = { so2: 350, nox: 650, dust: 50 };
+
+  function drawTrend(root) {
+    var cv = root.querySelector('#em-trend'); if (!cv) return;
+    var h = S.history[S.activeUnit] || {};
+    function pctOf(arr, lim) { return (arr || []).map(function (v) { return v / lim * 100; }); }
+    C.trend(cv, [
+      { data: pctOf(h.so2, LIMIT.so2), color: '--series-1', width: 2 },
+      { data: pctOf(h.nox, LIMIT.nox), color: '--series-3', width: 2 },
+      { data: pctOf(h.dust, LIMIT.dust), color: '--series-4', width: 2 }
+    ], { height: 200, min: 0, max: 120, dp: 0, xlabels: ['−3′', '−2′', '−1′', 'hiện tại'], limit: 100 });
+  }
+
+  function complianceBadge(u) {
+    var over = ['so2', 'nox', 'dust'].some(function (n) { return S.val(n, u) > LIMIT[n]; });
+    return over ? '<span class="badge badge--alarm">' + C.icon('alert', '', 2) + 'Vượt ngưỡng</span>'
+                : '<span class="badge badge--ok">' + C.icon('check', '', 2) + 'Đạt QCVN</span>';
+  }
+
+  V.emissions = {
+    title: 'Khí thải & CEMS',
+    subtitle: 'Emissions · Continuous Monitoring',
+    render: function (root) {
+      var u = S.activeUnit;
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Khí thải & Quan trắc môi trường</h2><span class="sub">CEMS · FGD khử SO₂ · ESP lọc bụi · ống khói</span><div class="spacer"></div>' + C.unitTabs() + '</div>' +
+          '<div class="grid cols-4">' +
+            C.gaugeCard('so2', u, 'SO₂ (quy 6% O₂)') +
+            C.gaugeCard('nox', u, 'NOx (quy 6% O₂)') +
+            C.gaugeCard('dust', u, 'Bụi tổng (PM)') +
+            C.gaugeCard('opac', u, 'Độ mờ khói') +
+          '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('smoke', 'ico') + '<h3>Nồng độ phát thải</h3><div class="spacer"></div><span id="em-badge">' + complianceBadge(u) + '</span></div><div class="card__body">' +
+                C.metric('so2', u, { icon: 'smoke' }) + C.metric('nox', u, { icon: 'smoke' }) +
+                C.metric('dust', u, { icon: 'wind' }) + C.metric('co', u, { icon: 'wind' }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng tuân thủ (% ngưỡng cho phép)</h3><div class="spacer"></div>' +
+                C.legend([{ label: 'SO₂', color: 'var(--series-1)' }, { label: 'NOx', color: 'var(--series-3)' }, { label: 'Bụi', color: 'var(--series-4)' }, { label: '100% ngưỡng', color: 'var(--alarm)', dash: true }]) + '</div>' +
+                '<div class="card__body"><div class="trend"><canvas id="em-trend"></canvas></div></div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Hệ thống xử lý khí thải</h3></div><div class="card__body">' +
+                C.metric('fgdEff', u, { icon: 'drop', bar: false }) + C.metric('espI', u, { icon: 'bolt', bar: false }) + C.metric('stkT', u, { icon: 'thermo', bar: false }) +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('smoke', 'ico') + '<h3>Ống khói</h3></div><div class="card__body">' +
+                C.metric('opac', u, { icon: 'smoke', bar: false }) + C.metric('stkT', u, { icon: 'thermo', bar: false }) +
+                '<div class="card__foot" style="border:none;padding:6px 0 0">Quan trắc tự động, truyền số liệu Sở TN&MT · 5 phút/lần</div>' +
+              '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Cảnh báo — Khí thải ' + u + '</h3></div><div id="em-alarms">' + C.alarmRows(C.sysAlarms(TAGS)) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      drawTrend(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      C.refresh(root);
+      var b = root.querySelector('#em-badge'); if (b) b.innerHTML = complianceBadge(S.activeUnit);
+      var a = root.querySelector('#em-alarms'); if (a) a.innerHTML = C.alarmRows(C.sysAlarms(TAGS));
+      drawTrend(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/alarms.js ==== */
+/* =====================================================================
+   VIEW · Cảnh báo & Sự kiện (Alarm & Event Management)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var flt = { sev: 'all', st: 'all', unit: 'all' };
+  var SEVT = { high: 'CAO', medium: 'TRUNG BÌNH', low: 'THẤP' };
+
+  function filtered() {
+    return S.alarms.filter(function (a) {
+      if (flt.sev !== 'all' && a.sev !== flt.sev) return false;
+      if (flt.st !== 'all' && a.state !== flt.st) return false;
+      if (flt.unit !== 'all' && a.uid !== flt.unit) return false;
+      return true;
+    });
+  }
+
+  function summary() {
+    var act = S.alarms.filter(function (a) { return a.state === 'active'; });
+    var hi = S.alarms.filter(function (a) { return a.sev === 'high'; }).length;
+    var me = S.alarms.filter(function (a) { return a.sev === 'medium'; }).length;
+    return C.kpi({ label: 'Cảnh báo hoạt động', value: F.fmt0(S.alarms.length), unit: '', icon: 'bell', status: S.alarms.length ? 'warn' : 'ok', sub: 'trên toàn nhà máy' }) +
+      C.kpi({ label: 'Chờ xác nhận (ack)', value: F.fmt0(act.length), unit: '', icon: 'alert', status: act.length ? 'warn' : 'ok', sub: 'cần thao tác' }) +
+      C.kpi({ label: 'Mức cao', value: F.fmt0(hi), unit: '', icon: 'alert', status: hi ? 'alarm' : 'ok', sub: 'ưu tiên xử lý' }) +
+      C.kpi({ label: 'Mức trung bình', value: F.fmt0(me), unit: '', icon: 'activity', status: me ? 'warn' : 'ok', sub: 'theo dõi' });
+  }
+
+  function seg(key, opts) {
+    return '<div class="seg" data-fkey="' + key + '">' + opts.map(function (o) {
+      return '<button data-fval="' + o[0] + '"' + (flt[key] === o[0] ? ' class="is-active"' : '') + '>' + o[1] + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function alarmTable() {
+    var list = filtered();
+    if (!list.length) return '<div class="empty">' + C.icon('check') + '<br>Không có cảnh báo phù hợp bộ lọc</div>';
+    return '<table class="tbl"><thead><tr><th>Thời gian</th><th>Mức</th><th>Tổ máy</th><th>Tag</th><th>Mô tả</th><th>Trạng thái</th><th></th></tr></thead><tbody>' +
+      list.map(function (a) {
+        var stCls = a.state === 'active' ? 'state-active' : a.state === 'ack' ? 'state-ack' : 'state-cleared';
+        var stTxt = a.state === 'active' ? 'Chờ ack' : a.state === 'ack' ? 'Đã ack' : 'Đã xóa';
+        return '<tr><td class="mono">' + F.clockTime(a.ts) + '</td>' +
+          '<td><span class="alarm-item__sev sev-' + a.sev + '">' + SEVT[a.sev] + '</span></td>' +
+          '<td>' + a.uid + '</td><td class="code">' + a.isa + '</td>' +
+          '<td>' + a.msg + '</td>' +
+          '<td class="' + stCls + '" style="font-weight:700;font-size:11.5px">' + stTxt + '</td>' +
+          '<td class="r">' + (a.state === 'active' ? '<button class="btn" data-ack="' + a.id + '" style="height:26px">Ack</button>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function eventTable() {
+    return '<table class="tbl"><thead><tr><th>Thời gian</th><th>Loại</th><th>Tổ máy</th><th>Nội dung</th><th>Người/Nguồn</th></tr></thead><tbody>' +
+      (S.events || []).slice(0, 12).map(function (e) {
+        return '<tr><td class="mono">' + F.clockTime(e.ts) + '</td>' +
+          '<td><span class="badge badge--muted">' + e.type + '</span></td>' +
+          '<td>' + e.uid + '</td><td>' + e.msg + '</td><td class="dim">' + e.user + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  V.alarms = {
+    title: 'Cảnh báo & Sự kiện',
+    subtitle: 'Alarm & Event Management',
+    render: function (root) {
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Cảnh báo & Sự kiện</h2><span class="sub">Danh sách cảnh báo · xác nhận · nhật ký vận hành</span>' +
+            '<div class="spacer"></div><button class="btn btn--primary" data-ackall>' + C.icon('check') + 'Xác nhận tất cả</button></div>' +
+          '<div class="grid cols-4" id="al-sum">' + summary() + '</div>' +
+          '<div class="card" style="margin-top:14px"><div class="card__head">' + C.icon('bell', 'ico') + '<h3>Danh sách cảnh báo</h3><div class="spacer"></div>' +
+            '<div class="row wrap" style="gap:8px" id="al-filters">' +
+              '<span class="eyebrow">Mức</span>' + seg('sev', [['all', 'Tất cả'], ['high', 'Cao'], ['medium', 'TB'], ['low', 'Thấp']]) +
+              '<span class="eyebrow">Trạng thái</span>' + seg('st', [['all', 'Tất cả'], ['active', 'Chờ ack'], ['ack', 'Đã ack']]) +
+              '<span class="eyebrow">Tổ máy</span>' + seg('unit', [['all', 'Tất cả'], ['S1', 'S1'], ['S2', 'S2']]) +
+            '</div></div>' +
+            '<div class="card__body tight" id="al-table">' + alarmTable() + '</div></div>' +
+          '<div class="card" style="margin-top:14px"><div class="card__head">' + C.icon('report', 'ico') + '<h3>Nhật ký sự kiện</h3><div class="spacer"></div><span class="sub">Sequence of Events</span></div>' +
+            '<div class="card__body tight" id="al-events">' + eventTable() + '</div></div>' +
+        '</div>';
+
+      root.querySelector('#al-filters').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-fval]'); if (!b) return;
+        var key = b.closest('[data-fkey]').getAttribute('data-fkey');
+        flt[key] = b.getAttribute('data-fval');
+        root.querySelectorAll('#al-filters .seg[data-fkey="' + key + '"] button').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        root.querySelector('#al-table').innerHTML = alarmTable();
+      });
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      root.querySelector('#al-sum').innerHTML = summary();
+      root.querySelector('#al-table').innerHTML = alarmTable();
+      root.querySelector('#al-events').innerHTML = eventTable();
+    }
+  };
+})(window);
+
+
+/* ==== js/views/trends.js ==== */
+/* =====================================================================
+   VIEW · Historian & Xu hướng (Trends)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+
+  var CHS = [
+    { k: 'mw', lbl: 'Công suất' }, { k: 'msP', lbl: 'Áp hơi chính' }, { k: 'msT', lbl: 'Nhiệt hơi chính' },
+    { k: 'coalF', lbl: 'Than vào lò' }, { k: 'feedF', lbl: 'Nước cấp' }, { k: 'o2', lbl: 'O₂ khói' },
+    { k: 'fgT', lbl: 'Nhiệt khói thải' }, { k: 'brgT', lbl: 'Nhiệt gối trục' }, { k: 'vib', lbl: 'Độ rung' },
+    { k: 'deaP', lbl: 'Áp khử khí' }, { k: 'cwOutT', lbl: 'Nước làm mát ra' }, { k: 'freq', lbl: 'Tần số' },
+    { k: 'so2', lbl: 'SO₂' }, { k: 'nox', lbl: 'NOx' }, { k: 'dust', lbl: 'Bụi' }
+  ];
+  var st = { ch: 'mw', range: 180 };
+
+  function slice(uid) { var a = (S.history[uid] || {})[st.ch] || []; return a.slice(-st.range); }
+  function stats(arr) {
+    if (!arr.length) return { cur: null, min: null, max: null, avg: null };
+    var mn = Infinity, mx = -Infinity, sum = 0;
+    arr.forEach(function (v) { if (v < mn) mn = v; if (v > mx) mx = v; sum += v; });
+    return { cur: arr[arr.length - 1], min: mn, max: mx, avg: sum / arr.length };
+  }
+  function xlabels() { return ['−' + st.range + 's', '−' + Math.round(st.range * 2 / 3) + 's', '−' + Math.round(st.range / 3) + 's', 'hiện tại']; }
+
+  function draw(root) {
+    var cv = root.querySelector('#tr-canvas'); if (!cv) return;
+    C.trend(cv, [
+      { data: slice('S1'), color: '--series-1', width: 2, fill: true },
+      { data: slice('S2'), color: '--series-3', width: 2 }
+    ], { height: 300, dp: S.spec(st.ch).dp, xlabels: xlabels() });
+  }
+
+  function chips() {
+    return CHS.map(function (c) {
+      return '<button class="unit-tab' + (st.ch === c.k ? ' is-active' : '') + '" data-ch="' + c.k + '" style="height:30px;font-size:12px;padding:0 11px">' + c.lbl + '</button>';
+    }).join('');
+  }
+
+  function statTable() {
+    var sp = S.spec(st.ch);
+    function row(uid, col) {
+      var s = stats(slice(uid));
+      return '<tr><td><span class="dot-st" style="background:' + col + '"></span> Tổ máy ' + uid + '</td>' +
+        '<td class="r num" style="font-weight:700">' + F.fmt(s.cur, sp.dp) + '</td>' +
+        '<td class="r num">' + F.fmt(s.min, sp.dp) + '</td><td class="r num">' + F.fmt(s.max, sp.dp) + '</td>' +
+        '<td class="r num">' + F.fmt(s.avg, sp.dp) + '</td></tr>';
+    }
+    return '<table class="tbl"><thead><tr><th>Kênh · ' + sp.d + ' (' + sp.u + ')</th><th class="r">Hiện tại</th><th class="r">Nhỏ nhất</th><th class="r">Lớn nhất</th><th class="r">Trung bình</th></tr></thead><tbody>' +
+      row('S1', '#2b7fd4') + row('S2', '#e08600') + '</tbody></table>';
+  }
+
+  V.trends = {
+    title: 'Historian & Xu hướng',
+    subtitle: 'Trends · So sánh 2 tổ máy',
+    render: function (root) {
+      var sp = S.spec(st.ch);
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Historian & Xu hướng</h2><span class="sub">Đồ thị đa kênh · so sánh tổ máy · thống kê</span>' +
+            '<div class="spacer"></div>' +
+            '<div class="seg" id="tr-range"><button data-range="60"' + (st.range === 60 ? ' class="is-active"' : '') + '>1 phút</button><button data-range="120"' + (st.range === 120 ? ' class="is-active"' : '') + '>2 phút</button><button data-range="180"' + (st.range === 180 ? ' class="is-active"' : '') + '>3 phút</button></div></div>' +
+          '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Chọn kênh (pen)</h3></div><div class="card__body"><div class="row wrap" style="gap:7px" id="tr-chips">' + chips() + '</div></div></div>' +
+          '<div class="card" style="margin-top:14px"><div class="card__head">' + C.icon('activity', 'ico') + '<h3 id="tr-title">' + sp.d + '</h3><span class="sub" id="tr-unit">— ' + sp.u + '</span><div class="spacer"></div>' +
+            C.legend([{ label: 'Tổ máy S1', color: 'var(--series-1)' }, { label: 'Tổ máy S2', color: 'var(--series-3)' }]) + '</div>' +
+            '<div class="card__body"><div class="trend"><canvas id="tr-canvas"></canvas></div></div></div>' +
+          '<div class="card" style="margin-top:14px"><div class="card__head">' + C.icon('report', 'ico') + '<h3>Thống kê khoảng thời gian</h3></div><div class="card__body tight" id="tr-stats">' + statTable() + '</div></div>' +
+        '</div>';
+
+      function pickCh(k) {
+        st.ch = k;
+        root.querySelectorAll('#tr-chips button').forEach(function (b) { b.classList.toggle('is-active', b.getAttribute('data-ch') === k); });
+        var sp2 = S.spec(k); root.querySelector('#tr-title').textContent = sp2.d; root.querySelector('#tr-unit').textContent = '— ' + sp2.u;
+        root.querySelector('#tr-stats').innerHTML = statTable(); draw(root);
+      }
+      root.querySelector('#tr-chips').addEventListener('click', function (e) { var b = e.target.closest('button[data-ch]'); if (b) pickCh(b.getAttribute('data-ch')); });
+      root.querySelector('#tr-range').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-range]'); if (!b) return;
+        st.range = +b.getAttribute('data-range');
+        root.querySelectorAll('#tr-range button').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        root.querySelector('#tr-stats').innerHTML = statTable(); draw(root);
+      });
+      draw(root); this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      root.querySelector('#tr-stats').innerHTML = statTable();
+      draw(root);
+    }
+  };
+})(window);
+
+
+/* ==== js/views/reports.js ==== */
+/* =====================================================================
+   VIEW · Báo cáo (Reports — báo cáo ca / sản lượng / phát thải)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var SHIFT_H = 8;
+  var LIMIT = { so2: 350, nox: 650, dust: 50 };
+
+  function unitRow(uid) {
+    var mw = S.val('mw', uid), coal = S.val('coalF', uid) * SHIFT_H;
+    return {
+      mwh: mw * SHIFT_H, hours: SHIFT_H.toFixed(1), load: mw,
+      hr: 9000 + (1 - mw / 330) * 850, coal: coal
+    };
+  }
+
+  function kpis() {
+    var s1 = unitRow('S1'), s2 = unitRow('S2');
+    var mwh = s1.mwh + s2.mwh;
+    var aux = mwh * S.plant.auxPct / 100;
+    var hr = (s1.hr + s2.hr) / 2;
+    return C.kpi({ label: 'Sản lượng ca', value: F.fmt(mwh, 0), unit: 'MWh', icon: 'bolt', status: 'info', sub: 'điện đầu cực · 2 tổ máy' }) +
+      C.kpi({ label: 'Điện tự dùng', value: F.fmt(aux, 0), unit: 'MWh', icon: 'activity', status: 'ok', sub: F.fmt(S.plant.auxPct, 1) + '% sản lượng' }) +
+      C.kpi({ label: 'Suất hao nhiệt', value: F.fmt(hr, 0), unit: 'kJ/kWh', icon: 'flame', status: 'ok', sub: 'bình quân ca' }) +
+      C.kpi({ label: 'Hệ số khả dụng', value: F.fmt(S.plant.avail, 1), unit: '%', icon: 'check', status: 'ok', sub: '2/2 tổ máy sẵn sàng' });
+  }
+
+  function balanceTable() {
+    function tr(name, uid) {
+      var r = unitRow(uid);
+      return '<tr><td class="code">' + name + '</td><td class="r num">' + F.fmt(r.mwh, 0) + '</td><td class="r num">' + r.hours + '</td>' +
+        '<td class="r num">' + F.fmt(r.load, 1) + '</td><td class="r num">' + F.fmt(r.hr, 0) + '</td><td class="r num">' + F.fmt(r.coal, 0) + '</td></tr>';
+    }
+    var s1 = unitRow('S1'), s2 = unitRow('S2');
+    return '<table class="tbl"><thead><tr><th>Tổ máy</th><th class="r">Sản lượng (MWh)</th><th class="r">Giờ VH</th><th class="r">Tải TB (MW)</th><th class="r">Suất hao (kJ/kWh)</th><th class="r">Than (tấn)</th></tr></thead><tbody>' +
+      tr('Tổ máy S1', 'S1') + tr('Tổ máy S2', 'S2') +
+      '<tr style="font-weight:750;background:var(--surface-2)"><td>Toàn nhà máy</td><td class="r num">' + F.fmt(s1.mwh + s2.mwh, 0) + '</td><td class="r num">' + (SHIFT_H * 2).toFixed(1) + '</td><td class="r num">' + F.fmt(s1.load + s2.load, 1) + '</td><td class="r num">' + F.fmt((s1.hr + s2.hr) / 2, 0) + '</td><td class="r num">' + F.fmt(s1.coal + s2.coal, 0) + '</td></tr>' +
+      '</tbody></table>';
+  }
+
+  function emissionTable() {
+    function tr(name, k) {
+      var v = (S.val(k, 'S1') + S.val(k, 'S2')) / 2, lim = LIMIT[k], ok = v <= lim;
+      return '<tr><td>' + name + '</td><td class="r num">' + F.fmt(v, 0) + '</td><td class="r num dim">' + lim + '</td>' +
+        '<td class="r">' + (ok ? '<span class="badge badge--ok"><span class="dot"></span>Đạt</span>' : '<span class="badge badge--alarm">Vượt</span>') + '</td></tr>';
+    }
+    return '<table class="tbl"><thead><tr><th>Chỉ tiêu</th><th class="r">TB ca</th><th class="r">Ngưỡng</th><th class="r">Đánh giá</th></tr></thead><tbody>' +
+      tr('SO₂ (mg/Nm³)', 'so2') + tr('NOx (mg/Nm³)', 'nox') + tr('Bụi (mg/Nm³)', 'dust') + '</tbody></table>';
+  }
+
+  // Biểu đồ cột sản lượng theo giờ (mô phỏng 12 giờ)
+  function hourlyBars() {
+    var base = S.plant.totalMW;
+    var vals = [];
+    for (var i = 0; i < 12; i++) vals.push(base * (0.9 + 0.12 * Math.sin(i / 2) + (i % 3) * 0.01));
+    var max = Math.max.apply(null, vals) * 1.1, W = 640, H = 190, bw = W / 12;
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto">';
+    for (var g = 0; g <= 3; g++) { var y = 12 + (H - 40) * g / 3; s += '<line x1="34" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="var(--line)" stroke-width="1"/><text x="28" y="' + (y + 3) + '" text-anchor="end" font-size="9" fill="var(--muted)">' + F.fmt(max * (1 - g / 3), 0) + '</text>'; }
+    vals.forEach(function (v, i) {
+      var h = (H - 40) * (v / max), x = 40 + i * (bw - 3) + 6, y = H - 28 - h;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + (bw - 16) + '" height="' + h + '" rx="3" fill="var(--series-1)" opacity="0.9"/>';
+      s += '<text x="' + (x + (bw - 16) / 2) + '" y="' + (H - 14) + '" text-anchor="middle" font-size="9" fill="var(--muted)">' + (i * 2) + 'h</text>';
+    });
+    s += '</svg>';
+    return s;
+  }
+
+  function opCells() {
+    var lf = (S.val('mw', 'S1') + S.val('mw', 'S2')) / 660 * 100;
+    return '<div class="cellgrid" style="grid-template-columns:1fr 1fr">' +
+      '<div class="cell"><div class="k">Hệ số tải</div><div class="v">' + F.fmt(lf, 1) + '<span class="u">%</span></div></div>' +
+      '<div class="cell"><div class="k">Giờ vận hành</div><div class="v">' + (SHIFT_H * 2).toFixed(0) + '<span class="u">giờ</span></div></div>' +
+      '<div class="cell"><div class="k">Lần khởi động</div><div class="v">0</div></div>' +
+      '<div class="cell"><div class="k">Sự cố dừng máy</div><div class="v">0</div></div>' +
+      '</div>';
+  }
+
+  V.reports = {
+    title: 'Báo cáo',
+    subtitle: 'Reports · Báo cáo ca vận hành',
+    render: function (root) {
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Báo cáo ca vận hành</h2><span class="sub">Ca 3 · ' + F.longDate(S.now) + ' · 22:00–06:00</span>' +
+            '<div class="spacer"></div><button class="btn">' + C.icon('report') + 'Xuất Excel</button><button class="btn btn--primary">' + C.icon('report') + 'In báo cáo</button></div>' +
+          '<div class="grid cols-4" id="rp-kpi">' + kpis() + '</div>' +
+          '<div class="layout-rail" style="margin-top:14px">' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('grid', 'ico') + '<h3>Cân bằng sản lượng theo tổ máy</h3></div><div class="card__body tight" id="rp-balance">' + balanceTable() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Sản lượng toàn nhà máy theo giờ</h3><div class="spacer"></div>' + C.legend([{ label: 'Công suất (MW)', color: 'var(--series-1)' }]) + '</div><div class="card__body" id="rp-bars">' + hourlyBars() + '</div></div>' +
+            '</div>' +
+            '<div class="grid" style="gap:14px">' +
+              '<div class="card"><div class="card__head">' + C.icon('smoke', 'ico') + '<h3>Phát thải trung bình ca</h3></div><div class="card__body tight" id="rp-emis">' + emissionTable() + '</div></div>' +
+              '<div class="card"><div class="card__head">' + C.icon('check', 'ico') + '<h3>Chỉ tiêu vận hành</h3></div><div class="card__body" id="rp-op">' + opCells() + '</div></div>' +
+              '<div class="card"><div class="card__body"><div class="dim" style="font-size:12px;line-height:1.6">Báo cáo tự động tổng hợp từ historian. Số liệu mang tính minh hoạ (mô phỏng). Ký duyệt: Trưởng ca · Trưởng kíp lò máy · Trưởng kíp điện.</div></div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      root.querySelector('#rp-kpi').innerHTML = kpis();
+      root.querySelector('#rp-balance').innerHTML = balanceTable();
+      root.querySelector('#rp-emis').innerHTML = emissionTable();
+      root.querySelector('#rp-op').innerHTML = opCells();
+    }
+  };
+})(window);
+
+
+/* ==== js/views/config.js ==== */
+/* =====================================================================
+   VIEW · Cấu hình hệ thống (Assets / Devices / Users / Settings)
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F;
+  var V = global.Views = global.Views || {};
+  var tab = 'assets';
+
+  var ASSETS = [
+    { code: 'BLR-1/2', name: 'Lò hơi', type: 'Lò hơi bao hơi tự nhiên', tags: 24, area: 'Lò' },
+    { code: 'TG-1/2', name: 'Tua-bin', type: 'Tua-bin ngưng hơi 3 thân', tags: 22, area: 'Máy' },
+    { code: 'GEN-1/2', name: 'Máy phát', type: 'Máy phát đồng bộ 20 kV', tags: 14, area: 'Điện' },
+    { code: 'GSU-1/2', name: 'MBA tăng áp', type: 'MBA 20/220 kV · 370 MVA', tags: 8, area: 'Trạm' },
+    { code: 'COND-1/2', name: 'Bình ngưng', type: 'Bình ngưng bề mặt', tags: 10, area: 'Máy' },
+    { code: 'CT-1/2', name: 'Tháp giải nhiệt', type: 'Tháp giải nhiệt cưỡng bức', tags: 9, area: 'BOP' },
+    { code: 'MILL-1A..E', name: 'Máy nghiền', type: 'Máy nghiền bi trung tốc', tags: 30, area: 'Nhiên liệu' },
+    { code: 'FGD-1/2', name: 'Khử lưu huỳnh', type: 'FGD ướt đá vôi–thạch cao', tags: 12, area: 'Môi trường' },
+    { code: 'ESP-1/2', name: 'Lọc bụi tĩnh điện', type: 'ESP 4 trường', tags: 11, area: 'Môi trường' }
+  ];
+  var USERS = [
+    { name: 'Trần Xuân Hoan', acc: 'op.hoan', role: 'Kỹ sư vận hành', perm: 'Vận hành · Ack', st: 'ok' },
+    { name: 'Nguyễn Văn Tuấn', acc: 'op.tuan', role: 'Trưởng kíp', perm: 'Vận hành · Điều độ', st: 'ok' },
+    { name: 'Quản trị hệ thống', acc: 'admin', role: 'Quản trị', perm: 'Toàn quyền', st: 'ok' },
+    { name: 'Phòng Kỹ thuật', acc: 'kt.view', role: 'Kỹ thuật', perm: 'Chỉ xem · Báo cáo', st: 'ok' },
+    { name: 'Sở TN&MT (CEMS)', acc: 'env.gov', role: 'Cơ quan quản lý', perm: 'Chỉ xem khí thải', st: 'ext' }
+  ];
+
+  function tabs() {
+    var items = [['assets', 'Tài sản', 'layers'], ['devices', 'Thiết bị I/O', 'device'], ['users', 'Người dùng', 'users'], ['settings', 'Cài đặt', 'settings']];
+    return '<div class="unit-tabs" id="cf-tabs">' + items.map(function (it) {
+      return '<button class="unit-tab' + (tab === it[0] ? ' is-active' : '') + '" data-tab="' + it[0] + '">' + C.icon(it[2], '', 1.7) + ' ' + it[1] + '</button>';
+    }).join('') + '</div>';
+  }
+
+  function assetsTable() {
+    return '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Danh mục tài sản</h3><div class="spacer"></div><span class="sub">' + ASSETS.length + ' nhóm thiết bị</span><button class="btn" style="margin-left:10px">' + C.icon('settings') + 'Thêm</button></div>' +
+      '<div class="card__body tight"><table class="tbl"><thead><tr><th>Mã tài sản</th><th>Tên</th><th>Loại thiết bị</th><th>Khu vực</th><th class="r">Số tag</th><th>Trạng thái</th></tr></thead><tbody>' +
+      ASSETS.map(function (a) {
+        return '<tr><td class="code">' + a.code + '</td><td>' + a.name + '</td><td class="dim">' + a.type + '</td><td>' + a.area + '</td><td class="r num">' + a.tags + '</td><td>' + C.badge('ok', 'Đang giám sát') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function devicesTable() {
+    return '<div class="card"><div class="card__head">' + C.icon('device', 'ico') + '<h3>Thiết bị đầu cuối (RTU / IO / CEMS)</h3><div class="spacer"></div><span class="sub">IEC 60870-5-104 · ' + S.PLANT.scan + ' ms</span></div>' +
+      '<div class="card__body tight"><table class="tbl"><thead><tr><th>Thiết bị</th><th>Địa chỉ IP</th><th>Giao thức</th><th class="r">Chu kỳ quét</th><th class="r">Trễ (ping)</th><th>Trạng thái</th></tr></thead><tbody>' +
+      (S.devices || []).map(function (d) {
+        var off = d.st === 'off';
+        return '<tr><td class="code">' + d.id + '<div class="dim" style="font-size:10.5px">' + d.role + '</div></td><td class="mono">' + d.ip + '</td><td class="dim">IEC-104</td>' +
+          '<td class="r num">' + S.PLANT.scan + ' ms</td><td class="r num">' + (off ? '—' : d.ms + ' ms') + '</td>' +
+          '<td>' + (off ? C.badge('alarm', 'Offline') : C.badge('ok', 'Trực tuyến')) + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function usersTable() {
+    return '<div class="card"><div class="card__head">' + C.icon('users', 'ico') + '<h3>Người dùng & Phân quyền</h3><div class="spacer"></div><button class="btn">' + C.icon('users') + 'Thêm người dùng</button></div>' +
+      '<div class="card__body tight"><table class="tbl"><thead><tr><th>Họ tên</th><th>Tài khoản</th><th>Vai trò</th><th>Quyền hạn</th><th>Trạng thái</th></tr></thead><tbody>' +
+      USERS.map(function (u) {
+        return '<tr><td style="font-weight:600">' + u.name + '</td><td class="code">' + u.acc + '</td><td>' + u.role + '</td><td class="dim">' + u.perm + '</td>' +
+          '<td>' + (u.st === 'ext' ? C.badge('info', 'Bên ngoài') : C.badge('ok', 'Kích hoạt')) + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function settings() {
+    function group(icon, title, rows) {
+      return '<div class="card"><div class="card__head">' + C.icon(icon, 'ico') + '<h3>' + title + '</h3></div><div class="card__body"><div class="cellgrid" style="grid-template-columns:1fr 1fr">' +
+        rows.map(function (r) { return '<div class="cell"><div class="k">' + r[0] + '</div><div class="v" style="font-size:15px">' + r[1] + '</div></div>'; }).join('') + '</div></div></div>';
+    }
+    return '<div class="grid cols-2">' +
+      group('factory', 'Hệ thống', [['Tên nhà máy', S.PLANT.name], ['Địa điểm', S.PLANT.site], ['Cấu hình', S.PLANT.config], ['Phiên bản', 'ThermoSCADA 1.0']]) +
+      group('device', 'Truyền thông', [['Giao thức', 'IEC 60870-5-104'], ['Chu kỳ quét', S.PLANT.scan + ' ms'], ['Dự phòng', 'Hot-standby A/B'], ['Đồng bộ giờ', 'NTP · GPS']]) +
+      group('report', 'Historian', [['Cơ sở dữ liệu', 'PostgreSQL / TimescaleDB'], ['Lưu trữ', '3 năm · nén 1s'], ['Số điểm đo', Object.keys(S.SPEC).length * 2 + ' tag'], ['Sao lưu', 'Hằng ngày 02:00']]) +
+      group('settings', 'Giao diện & Đơn vị', [['Ngôn ngữ', 'Tiếng Việt'], ['Đơn vị', 'SI · °C · bar · MW'], ['Múi giờ', 'UTC+7 (ICT)'], ['Chế độ', 'Chỉ đọc · Giám sát']]) +
+      '</div>';
+  }
+
+  function content() {
+    if (tab === 'assets') return assetsTable();
+    if (tab === 'devices') return devicesTable();
+    if (tab === 'users') return usersTable();
+    return settings();
+  }
+
+  V.config = {
+    title: 'Cấu hình hệ thống',
+    subtitle: 'Assets · Devices · Users · Settings',
+    render: function (root) {
+      root.innerHTML =
+        '<div class="page">' +
+          '<div class="page__head"><h2>Cấu hình hệ thống</h2><span class="sub">Tài sản · thiết bị I/O · người dùng · cài đặt</span><div class="spacer"></div>' + tabs() + '</div>' +
+          '<div id="cf-content">' + content() + '</div>' +
+        '</div>';
+      root.querySelector('#cf-tabs').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-tab]'); if (!b) return;
+        tab = b.getAttribute('data-tab');
+        root.querySelectorAll('#cf-tabs button').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+        root.querySelector('#cf-content').innerHTML = content();
+      });
+      this._root = root;
+    },
+    update: function () {
+      var root = this._root; if (!root) return;
+      if (tab === 'devices') root.querySelector('#cf-content').innerHTML = content();
+    }
+  };
+})(window);
+
+
+/* ==== js/app.js ==== */
+/* =====================================================================
+   THERMOSCADA — Bootstrap
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C, F = global.F, Router = global.Router, Engine = global.Engine, V = global.Views || {};
+
+  /* ---- Cấu trúc điều hướng ---- */
+  var NAV = [
+    { label: 'Giám sát', items: [
+      { id: 'overview',   name: 'Tổng quan nhà máy',   icon: 'factory' },
+      { id: 'boiler',     name: 'Lò hơi & Đốt',        icon: 'flame' },
+      { id: 'turbine',    name: 'Tua-bin & Máy phát',  icon: 'rotor' },
+      { id: 'feedwater',  name: 'Nước cấp & Ngưng tụ', icon: 'drop' },
+      { id: 'cooling',    name: 'Nước làm mát',        icon: 'tower' },
+      { id: 'fuel',       name: 'Cấp nhiên liệu',      icon: 'coal' },
+      { id: 'electrical', name: 'Điện & Trạm phân phối',icon: 'bolt' },
+      { id: 'emissions',  name: 'Khí thải & CEMS',     icon: 'smoke' }
+    ]},
+    { label: 'Vận hành', items: [
+      { id: 'alarms',  name: 'Cảnh báo & Sự kiện', icon: 'bell', badge: true },
+      { id: 'trends',  name: 'Historian & Xu hướng', icon: 'activity' },
+      { id: 'reports', name: 'Báo cáo', icon: 'report' }
+    ]},
+    { label: 'Cấu hình', items: [
+      { id: 'config', name: 'Cấu hình hệ thống', icon: 'settings' }
+    ]}
+  ];
+
+  /* ---- Sidebar nav ---- */
+  function buildNav() {
+    var nav = document.getElementById('nav');
+    nav.innerHTML = NAV.map(function (g) {
+      return '<div class="nav__group"><div class="nav__label">' + g.label + '</div>' +
+        g.items.map(function (it) {
+          return '<a class="nav__item" href="#/' + it.id + '" data-id="' + it.id + '">' +
+            C.icon(it.icon) + '<span>' + it.name + '</span>' +
+            (it.badge ? '<span class="nav__badge is-zero" data-alarm-badge>0</span>' : '') + '</a>';
+        }).join('') + '</div>';
+    }).join('');
+  }
+
+  /* ---- Topbar ---- */
+  function buildTopbar() {
+    var tb = document.getElementById('topbar');
+    tb.innerHTML =
+      '<div class="topbar__title"><h1 id="tb-title">Tổng quan</h1><p id="tb-sub">' + S.PLANT.name + '</p></div>' +
+      '<div class="topbar__spacer"></div>' +
+      '<div class="topbar__chips">' +
+        '<span class="chip">' + C.icon('factory') + '<b>' + S.PLANT.site + '</b> · ' + S.PLANT.config + '</span>' +
+        '<span class="chip">' + C.icon('device') + 'IEC-104 · <b>' + S.PLANT.scan + ' ms</b></span>' +
+        '<span class="chip"><span class="dot" style="background:var(--ok)"></span><span class="pulse">Trực tuyến</span> · Mô phỏng</span>' +
+        '<div class="clock"><span class="t" id="tb-clock">--:--:--</span><span class="d" id="tb-date">—</span></div>' +
+        '<div class="user"><div class="user__av">TXH</div><div class="user__meta"><div class="n">Trần Xuân Hoan</div><div class="r">Kỹ sư vận hành</div></div></div>' +
+      '</div>';
+  }
+
+  /* ---- Cập nhật topbar + badge theo tick ---- */
+  function tickChrome() {
+    var c = document.getElementById('tb-clock'); if (c) c.textContent = F.clockTime(S.now);
+    var d = document.getElementById('tb-date'); if (d) d.textContent = F.longDate(S.now) + ' · UTC+7';
+    var n = S.unacked();
+    document.querySelectorAll('[data-alarm-badge]').forEach(function (b) {
+      b.textContent = n; b.classList.toggle('is-zero', n === 0);
+    });
+  }
+
+  /* ---- Khởi động ---- */
+  function boot() {
+    Engine.init();
+    buildNav();
+    buildTopbar();
+
+    // đăng ký view
+    Object.keys(V).forEach(function (id) { Router.register(id, V[id]); });
+
+    Router.onChange(function (id, view) {
+      document.querySelectorAll('.nav__item').forEach(function (a) { a.classList.toggle('is-active', a.getAttribute('data-id') === id); });
+      var t = document.getElementById('tb-title'); if (t) t.textContent = view.title || '';
+      var s = document.getElementById('tb-sub'); if (s) s.textContent = view.subtitle || S.PLANT.name;
+      document.title = (view.title || 'ThermoSCADA') + ' · ThermoSCADA';
+    });
+
+    // Bắt sự kiện click chung cho mọi view (event delegation)
+    document.getElementById('view').addEventListener('click', function (e) {
+      var u = e.target.closest('[data-unit]');
+      if (u) { S.setUnit(u.getAttribute('data-unit')); Router.go(Router.current()); return; }
+      var n = e.target.closest('[data-nav]');
+      if (n) { Router.go(n.getAttribute('data-nav')); return; }
+      var aa = e.target.closest('[data-ackall]');
+      if (aa) { S.ackAll(); return; }
+      var a = e.target.closest('[data-ack]');
+      if (a) { S.ackAlarm(a.getAttribute('data-ack')); return; }
+    });
+
+    S.subscribe(tickChrome);
+    Router.start();
+    Engine.start();
+    tickChrome();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(window);
+
+  </script>
+</body>
+</html>
