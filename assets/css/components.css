@@ -201,6 +201,7 @@
 
 /* Empty / placeholder */
 .empty { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; }
+.empty svg { width: 26px; height: 26px; opacity: .45; margin: 0 auto 6px; }
 
 /* Toast for ack */
 .toast-wrap { position: fixed; right: 20px; bottom: 20px; display: grid; gap: 8px; z-index: 50; }

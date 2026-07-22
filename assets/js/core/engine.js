@@ -175,6 +175,8 @@
     });
 
     seedHistory();
+    S.plant.totalMW = S.u.S1.mw + S.u.S2.mw;
+    S.plant.netMW = S.plant.totalMW * (1 - S.plant.auxPct / 100);
     computeAlarms();
   }
 
