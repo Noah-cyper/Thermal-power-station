@@ -63,6 +63,26 @@ npx serve .
 
 ---
 
+## 🌐 Đưa lên web cho khách xem
+
+Vì là web **tĩnh, tự chứa**, có nhiều cách host — chọn 1:
+
+**1) GitHub Pages (tự động)** — đã có sẵn workflow `.github/workflows/deploy-pages.yml`.
+Mỗi lần push, GitHub Actions tự build & deploy; workflow tự bật Pages
+(`enablement: true`). URL: `https://noah-cyper.github.io/thermal-power-station/`.
+> Yêu cầu: repo **public** (hoặc tài khoản GitHub Pro nếu để private) và bật
+> Actions. Nếu tổ chức chặn tự bật, vào **Settings → Pages → Source: GitHub
+> Actions** một lần rồi chạy lại workflow.
+
+**2) File đơn `dist/thermoscada.html`** — toàn bộ hệ gói trong **1 file HTML**.
+Upload lên bất kỳ hosting/tên miền nào (hoặc mở trực tiếp, gửi email cho khách).
+Tạo lại bằng: `node scripts được mô tả trong commit` (gộp CSS+JS vào index).
+
+**3) Netlify / Vercel / Cloudflare Pages** — kéo-thả thư mục hoặc nối repo,
+hỗ trợ tên miền riêng (vd `scada.tencongty.vn`).
+
+**4) Máy chủ nội bộ** — copy thư mục lên bất kỳ web server nào (Nginx/Apache/IIS).
+
 ## 🏗️ Kiến trúc mã nguồn
 
 ```
