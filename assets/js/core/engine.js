@@ -139,7 +139,13 @@
     S.alarms = list;
   }
 
-  S.ackAlarm = function (id) { ackedIds[id] = true; var d = S._discrete.filter(function (x) { return x.id === id; })[0]; if (d) d.state = 'ack'; computeAlarms(); S.emit(); };
+  S.ackAlarm = function (id) {
+    ackedIds[id] = true;
+    var a = S.alarms.filter(function (x) { return x.id === id; })[0];
+    var d = S._discrete.filter(function (x) { return x.id === id; })[0]; if (d) d.state = 'ack';
+    if (a && S.events) S.events.unshift({ ts: new Date(S.now), type: 'ACK', uid: a.uid, msg: 'Xác nhận cảnh báo ' + a.isa + ' · ' + a.msg, user: 'op.hoan' });
+    computeAlarms(); S.emit();
+  };
   S.ackAll = function () { S.alarms.forEach(function (a) { ackedIds[a.id] = true; if (a.id.indexOf('DEV') === 0) a.state = 'ack'; }); computeAlarms(); S.emit(); };
 
   /* ---- Khởi tạo ---- */
@@ -157,6 +163,17 @@
     S._discrete = [
       { id: 'DEV-CWP-B', uid: 'S1', tag: 'CWP-1B', isa: 'CWP-1B', msg: 'Bơm tuần hoàn 1B (dự phòng) offline · leg dự phòng', sev: 'medium', ts: new Date(S.now - 41 * 60000), state: 'ack' },
       { id: 'DEV-SOOT', uid: 'S2', tag: 'SB-204', isa: 'SB-204', msg: 'Máy thổi bụi SB-204 gặp lỗi vị trí · cần kiểm tra', sev: 'low', ts: new Date(S.now - 12 * 60000), state: 'active' }
+    ];
+
+    var t0 = S.now;
+    S.events = [
+      { ts: new Date(t0 - 3 * 60000), type: 'ALARM', uid: 'S1', msg: 'TT-603 Nhiệt độ ra máy nghiền 1A vượt ngưỡng cảnh báo', user: 'Hệ thống' },
+      { ts: new Date(t0 - 8 * 60000), type: 'THAO TÁC', uid: 'S2', msg: 'Khởi động bơm nước ngưng CEP-2B', user: 'op.hoan' },
+      { ts: new Date(t0 - 15 * 60000), type: 'ACK', uid: 'S1', msg: 'Xác nhận cảnh báo CWP-1B offline', user: 'op.hoan' },
+      { ts: new Date(t0 - 22 * 60000), type: 'ĐIỀU ĐỘ', uid: 'S1', msg: 'Nhận lệnh điều độ A0: nâng tải lên 300 MW', user: 'op.tuan' },
+      { ts: new Date(t0 - 36 * 60000), type: 'THAO TÁC', uid: 'S2', msg: 'Chuyển máy nghiền 2E sang chế độ dự phòng', user: 'op.tuan' },
+      { ts: new Date(t0 - 52 * 60000), type: 'CẢNH BÁO', uid: 'S1', msg: 'Máy thổi bụi SB-104 hoàn tất chu trình', user: 'Hệ thống' },
+      { ts: new Date(t0 - 74 * 60000), type: 'ĐỔI CA', uid: '—', msg: 'Giao ca vận hành · ca 2 → ca 3', user: 'Trưởng ca' }
     ];
 
     S.UNITS.forEach(function (unit, i) {
