@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ThermoSCADA — Nhà máy Nhiệt điện</title>
+  <meta name="description" content="Hệ SCADA trình bày trên web cho nhà máy nhiệt điện than — HMI mô phỏng, chạy hoàn toàn trên trình duyệt." />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 22V13l4-3 4 3v9M18 22v-6l3-2 3 2v6' stroke='white' stroke-width='1.8' fill='none'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="7" fill="#2563eb"/><path d="M7 23V13l4.5-3.2L16 13v10M17.5 23v-6.5L21 14l3.5 2.5V23" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/><circle cx="24" cy="9" r="2.2" fill="#7cc4ff"/></svg>
+        </div>
+        <div class="brand__text">
+          <div class="brand__name">THERMOSCADA</div>
+          <div class="brand__sub">Thermal Power Plant</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav" aria-label="Điều hướng chính"><!-- injected by app.js --></nav>
+
+      <div class="sidebar__foot">
+        <div class="kv"><span>Chế độ</span><b>HMI · Demo</b></div>
+        <div class="kv"><span>Phiên bản</span><b>SCADA 1.0</b></div>
+      </div>
+    </aside>
+
+    <!-- Main column -->
+    <div class="main">
+      <header class="topbar" id="topbar"><!-- injected by app.js --></header>
+      <main class="content" id="view" tabindex="-1"><!-- views render here --></main>
+    </div>
+  </div>
+
+  <!-- Core -->
+  <script src="assets/js/core/format.js"></script>
+  <script src="assets/js/core/store.js"></script>
+  <script src="assets/js/core/engine.js"></script>
+  <script src="assets/js/core/components.js"></script>
+  <script src="assets/js/core/router.js"></script>
+
+  <!-- Views -->
+  <script src="assets/js/views/overview.js"></script>
+  <script src="assets/js/views/boiler.js"></script>
+  <script src="assets/js/views/turbine.js"></script>
+  <script src="assets/js/views/feedwater.js"></script>
+  <script src="assets/js/views/cooling.js"></script>
+  <script src="assets/js/views/fuel.js"></script>
+  <script src="assets/js/views/electrical.js"></script>
+  <script src="assets/js/views/emissions.js"></script>
+  <script src="assets/js/views/alarms.js"></script>
+  <script src="assets/js/views/trends.js"></script>
+  <script src="assets/js/views/reports.js"></script>
+  <script src="assets/js/views/config.js"></script>
+
+  <!-- Bootstrap -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

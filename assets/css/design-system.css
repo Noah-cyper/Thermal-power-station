@@ -1,0 +1,185 @@
+/* =====================================================================
+   THERMOSCADA — Design System
+   Ngôn ngữ thiết kế cho HMI nhà máy nhiệt điện (dark shell + light content).
+   Bảng màu trạng thái đối chiếu chuẩn dataviz: mỗi trạng thái luôn kèm
+   icon + nhãn chữ, không bao giờ chỉ dựa vào màu.
+   ===================================================================== */
+
+:root {
+  /* --- Shell (sidebar + topbar tối) --- */
+  --shell-bg:        #0c1a2e;
+  --shell-bg-2:      #0a1524;
+  --shell-line:      #1c2f49;
+  --shell-chip:      #14273f;
+  --shell-chip-2:    #172c46;
+  --shell-text:      #aab9d1;
+  --shell-text-dim:  #6f83a1;
+  --shell-text-hi:   #ffffff;
+
+  /* --- Content (nền sáng, thẻ trắng) --- */
+  --bg:              #eef1f6;
+  --bg-2:            #e7ebf2;
+  --surface:         #ffffff;
+  --surface-2:       #f7f9fc;
+  --surface-3:       #f0f3f8;
+  --line:            #e2e8f1;
+  --line-2:          #eef1f6;
+  --line-strong:     #d3dbe6;
+
+  /* --- Ink --- */
+  --ink:             #0f1e33;
+  --ink-2:           #37465c;
+  --muted:           #6b7a90;
+  --muted-2:         #93a1b5;
+
+  /* --- Thương hiệu / accent --- */
+  --brand:           #2563eb;
+  --brand-2:         #1d70e0;
+  --brand-ink:       #1a4fb0;
+  --measure:         #2b7fd4;   /* màu số đo (blue) */
+  --brand-wash:      #e8f0fe;
+
+  /* --- Trạng thái (cố định, không theo theme) --- */
+  --ok:              #16a34a;   /* Normal / Validated / Healthy / Online */
+  --ok-strong:       #15803d;
+  --ok-wash:         #e6f6ec;
+  --ok-line:         #b6e2c4;
+
+  --warn:            #e08600;   /* Warning / Degraded */
+  --warn-strong:     #b45c00;
+  --warn-wash:       #fdf1dd;
+  --warn-line:       #f3d59a;
+
+  --alarm:           #dc2626;   /* Alarm / Trip / Offline */
+  --alarm-strong:    #b91c1c;
+  --alarm-wash:      #fdeaea;
+  --alarm-line:      #f3c2c2;
+
+  --info:            #2563eb;
+  --info-wash:       #e8f0fe;
+  --info-line:       #c2d6f7;
+
+  /* --- Chuỗi dữ liệu cho đồ thị (categorical, đã kiểm định CVD) --- */
+  --series-1:        #2b7fd4;   /* blue   */
+  --series-2:        #6b7a90;   /* slate  */
+  --series-3:        #e08600;   /* amber  */
+  --series-4:        #1baf7a;   /* aqua   */
+  --series-5:        #e34948;   /* red    */
+  --series-6:        #8b5cf6;   /* violet */
+
+  /* --- Hình học --- */
+  --r-sm: 6px;
+  --r:    9px;
+  --r-lg: 13px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(15,30,51,.06), 0 1px 3px rgba(15,30,51,.05);
+  --shadow:    0 1px 2px rgba(15,30,51,.06), 0 4px 14px rgba(15,30,51,.07);
+  --shadow-lg: 0 8px 30px rgba(15,30,51,.12);
+
+  /* --- Chữ --- */
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+
+  --sidebar-w: 236px;
+  --topbar-h: 62px;
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1,h2,h3,h4,p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+svg { display: block; }
+ul { margin: 0; padding: 0; list-style: none; }
+::selection { background: rgba(37,99,235,.18); }
+
+/* Scrollbar */
+* { scrollbar-width: thin; scrollbar-color: #c3cde0 transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #c3cde0; border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: #a9b6cf; background-clip: content-box; }
+
+/* ---------- Tiện ích chữ ---------- */
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); }
+.tag-code { font-family: var(--mono); font-size: 11.5px; letter-spacing: .02em; color: var(--muted); }
+.eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--muted);
+}
+.dim { color: var(--muted); }
+
+/* ---------- Trạng thái: chữ + màu ---------- */
+.is-ok    { color: var(--ok-strong); }
+.is-warn  { color: var(--warn-strong); }
+.is-alarm { color: var(--alarm-strong); }
+.is-info  { color: var(--brand-ink); }
+
+/* ---------- Badge (icon + nhãn, không chỉ màu) ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px 2px 7px; border-radius: var(--r-pill);
+  font-size: 11.5px; font-weight: 650; line-height: 1.7;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.badge svg { width: 12px; height: 12px; }
+.badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.badge--ok    { color: var(--ok-strong);    background: var(--ok-wash);    border-color: var(--ok-line); }
+.badge--warn  { color: var(--warn-strong);  background: var(--warn-wash);  border-color: var(--warn-line); }
+.badge--alarm { color: var(--alarm-strong); background: var(--alarm-wash); border-color: var(--alarm-line); }
+.badge--info  { color: var(--brand-ink);    background: var(--info-wash);  border-color: var(--info-line); }
+.badge--muted { color: var(--muted);        background: var(--surface-3);  border-color: var(--line); }
+
+/* Chip nhỏ trên nền tối (topbar) */
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 30px; padding: 0 11px; border-radius: var(--r-pill);
+  background: var(--shell-chip); border: 1px solid var(--shell-line);
+  color: var(--shell-text); font-size: 12.5px; font-weight: 550;
+}
+.chip b { color: var(--shell-text-hi); font-weight: 650; }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.chip svg { width: 14px; height: 14px; opacity: .85; }
+
+/* Nút phân đoạn */
+.seg { display: inline-flex; background: var(--surface-3); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 2px; }
+.seg button {
+  padding: 4px 12px; border-radius: var(--r-pill); font-size: 12px; font-weight: 600;
+  color: var(--muted); transition: all .12s;
+}
+.seg button.is-active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+
+/* Nút bấm chung */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px;
+  border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line-strong);
+  color: var(--ink-2); font-size: 12.5px; font-weight: 600; transition: all .12s;
+}
+.btn:hover { border-color: #b7c4d6; background: var(--surface-2); }
+.btn svg { width: 14px; height: 14px; }
+.btn--primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn--primary:hover { background: var(--brand-2); }
+.btn--ghost { background: transparent; border-color: transparent; }
+
+/* Animation dấu chấm "live" */
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+
+@keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: .25; } }
+.blink { animation: blink 1s step-start infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse, .blink { animation: none; }
+}
