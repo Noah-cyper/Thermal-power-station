@@ -308,3 +308,20 @@ body.fp-lock { overflow: hidden; }
 .pid-theme button { padding: 0 11px; border: none; background: transparent; color: var(--muted); font-size: 11.5px; font-weight: 650; cursor: pointer; transition: background .12s; }
 .pid-theme button + button { border-left: 1px solid var(--line-strong); }
 .pid-theme button.is-active { background: var(--brand); color: #fff; }
+
+/* ============ Faceplate theme HP-HMI (tối, đồng bộ với sơ đồ) ============ */
+.fp-overlay.fp-hp .fp { background: #161d25; border-color: #2e3742; }
+.fp-overlay.fp-hp .fp__head, .fp-overlay.fp-hp .fp__foot { border-color: #2a333d; }
+.fp-overlay.fp-hp .fp__ic { background: #1f2833; color: #8ab4e8; }
+.fp-overlay.fp-hp .fp__name { color: #e6eaee; }
+.fp-overlay.fp-hp .fp__code, .fp-overlay.fp-hp .fp__desc, .fp-overlay.fp-hp .fp__hint { color: #9aa5b1; }
+.fp-overlay.fp-hp .fp__x { color: #8a939c; }
+.fp-overlay.fp-hp .fp__x:hover { background: #222a33; color: #fff; }
+.fp-overlay.fp-hp .metric { border-color: #2a333d; }
+.fp-overlay.fp-hp .metric__ic { color: #8a939c; }
+.fp-overlay.fp-hp .metric__name { color: #e6eaee; }
+.fp-overlay.fp-hp .metric__tag { color: #8a939c; }
+.fp-overlay.fp-hp .metric__val .v { color: #ffffff; }
+.fp-overlay.fp-hp .metric__val .u { color: #8a939c; }
+.fp-overlay.fp-hp .gauge__label { color: #9aa5b1; }
+.fp-overlay.fp-hp .gauge svg text { fill: #e6eaee; }

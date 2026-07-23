@@ -77,6 +77,8 @@
     if (!EQ[key]) return;
     ensureHost();
     render(key);
+    // Đồng bộ theme với sơ đồ: nếu P&ID đang HP-HMI thì faceplate cũng tối
+    host.classList.toggle('fp-hp', !!document.querySelector('.pid--full.hmi-hp'));
     host.classList.add('is-open');
     document.body.classList.add('fp-lock');
     if (unsub) unsub();

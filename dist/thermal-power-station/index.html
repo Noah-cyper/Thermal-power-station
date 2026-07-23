@@ -645,6 +645,23 @@ body.fp-lock { overflow: hidden; }
 .pid-theme button + button { border-left: 1px solid var(--line-strong); }
 .pid-theme button.is-active { background: var(--brand); color: #fff; }
 
+/* ============ Faceplate theme HP-HMI (tối, đồng bộ với sơ đồ) ============ */
+.fp-overlay.fp-hp .fp { background: #161d25; border-color: #2e3742; }
+.fp-overlay.fp-hp .fp__head, .fp-overlay.fp-hp .fp__foot { border-color: #2a333d; }
+.fp-overlay.fp-hp .fp__ic { background: #1f2833; color: #8ab4e8; }
+.fp-overlay.fp-hp .fp__name { color: #e6eaee; }
+.fp-overlay.fp-hp .fp__code, .fp-overlay.fp-hp .fp__desc, .fp-overlay.fp-hp .fp__hint { color: #9aa5b1; }
+.fp-overlay.fp-hp .fp__x { color: #8a939c; }
+.fp-overlay.fp-hp .fp__x:hover { background: #222a33; color: #fff; }
+.fp-overlay.fp-hp .metric { border-color: #2a333d; }
+.fp-overlay.fp-hp .metric__ic { color: #8a939c; }
+.fp-overlay.fp-hp .metric__name { color: #e6eaee; }
+.fp-overlay.fp-hp .metric__tag { color: #8a939c; }
+.fp-overlay.fp-hp .metric__val .v { color: #ffffff; }
+.fp-overlay.fp-hp .metric__val .u { color: #8a939c; }
+.fp-overlay.fp-hp .gauge__label { color: #9aa5b1; }
+.fp-overlay.fp-hp .gauge svg text { fill: #e6eaee; }
+
   </style>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 22V13l4-3 4 3v9M18 22v-6l3-2 3 2v6' stroke='white' stroke-width='1.8' fill='none'/%3E%3C/svg%3E" />
 </head>
@@ -1642,6 +1659,8 @@ body.fp-lock { overflow: hidden; }
     if (!EQ[key]) return;
     ensureHost();
     render(key);
+    // Đồng bộ theme với sơ đồ: nếu P&ID đang HP-HMI thì faceplate cũng tối
+    host.classList.toggle('fp-hp', !!document.querySelector('.pid--full.hmi-hp'));
     host.classList.add('is-open');
     document.body.classList.add('fp-lock');
     if (unsub) unsub();
