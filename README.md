@@ -74,9 +74,11 @@ Mỗi lần push, GitHub Actions tự build & deploy; workflow tự bật Pages
 > Actions. Nếu tổ chức chặn tự bật, vào **Settings → Pages → Source: GitHub
 > Actions** một lần rồi chạy lại workflow.
 
-**2) File đơn `dist/thermoscada.html`** — toàn bộ hệ gói trong **1 file HTML**.
-Upload lên bất kỳ hosting/tên miền nào (hoặc mở trực tiếp, gửi email cho khách).
-Tạo lại bằng: `node scripts được mô tả trong commit` (gộp CSS+JS vào index).
+**2) File đơn tự chứa** — toàn bộ hệ gói trong **1 file HTML** (dùng cho
+Cloudflare Pages tại `hoantrantdh.com/thermal-power-station`). Tạo lại bằng
+`node scripts/build.mjs` — gộp CSS + JS (bản module trong `assets/`) vào
+`dist/thermal-power-station/index.html`. Sửa code ở `assets/` rồi chạy lại lệnh
+này để cập nhật bản deploy.
 
 **3) Netlify / Vercel / Cloudflare Pages** — kéo-thả thư mục hoặc nối repo,
 hỗ trợ tên miền riêng (vd `scada.tencongty.vn`).

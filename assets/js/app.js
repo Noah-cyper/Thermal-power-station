@@ -83,6 +83,8 @@
 
     // Bắt sự kiện click chung cho mọi view (event delegation)
     document.getElementById('view').addEventListener('click', function (e) {
+      var fp = e.target.closest('[data-fp]');
+      if (fp) { if (global.Faceplate) global.Faceplate.open(fp.getAttribute('data-fp')); return; }
       var u = e.target.closest('[data-unit]');
       if (u) { S.setUnit(u.getAttribute('data-unit')); Router.go(Router.current()); return; }
       var n = e.target.closest('[data-nav]');

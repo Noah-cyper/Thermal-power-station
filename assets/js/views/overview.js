@@ -37,8 +37,9 @@
     g += '</g>';
     return g;
   }
-  function eqBox(x, y, w, h, code, name, fill) {
-    return '<g><rect class="eqbox" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="7"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>' +
+  function eqBox(x, y, w, h, code, name, fill, key) {
+    var open = key ? '<g data-fp="' + key + '" class="eqg clickable">' : '<g>';
+    return open + '<rect class="eqbox" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="7"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>' +
       '<text class="eqlabel" x="' + (x + w / 2) + '" y="' + (y + h - 15) + '" text-anchor="middle">' + code + '</text>' +
       '<text class="eqname" x="' + (x + w / 2) + '" y="' + (y + h - 4) + '" text-anchor="middle">' + name + '</text></g>';
   }
@@ -63,19 +64,19 @@
     s += pipe('M500 234 H452', WATER, true);                           // bình ngưng→khử khí
     s += pipe('M360 250 H300 V90', WATER, true);                       // khử khí/bơm→lò (nước cấp)
 
-    // ----- Equipment -----
-    s += eqBox(20, 150, 64, 110, 'CB-1A', 'Bunker than');
-    s += eqBox(120, 175, 76, 60, 'MILL-1A', 'Máy nghiền');
-    s += eqBox(232, 70, 110, 190, 'BLR-1', 'Lò hơi', 'rgba(214,69,69,.05)');
-    s += '<path d="M262 250 q10 -22 25 -12 q-6 -18 12 -24 q4 16 16 12 q-2 20 -18 24 z" fill="#f0a030" opacity=".85"/>'; // ngọn lửa
-    s += eqBox(240, 20, 34, 130, 'STK-1', 'Ống khói', '#eef1f6');
-    s += eqBox(470, 100, 150, 70, 'TG-1', 'Tua-bin HP·IP·LP', 'rgba(43,127,212,.05)');
-    s += '<circle class="eqbox" cx="700" cy="135" r="34"/><text class="eqlabel" x="700" y="132" text-anchor="middle" font-size="16">G</text><text class="eqname" x="700" y="146" text-anchor="middle">Máy phát</text>';
-    s += eqBox(770, 108, 44, 54, 'GSU-1', 'MBA', '#eef1f6');
+    // ----- Equipment (data-fp = mở faceplate chi tiết) -----
+    s += eqBox(20, 150, 64, 110, 'CB-1A', 'Bunker than', null, 'bunker');
+    s += eqBox(120, 175, 76, 60, 'MILL-1A', 'Máy nghiền', null, 'mill');
+    s += eqBox(232, 70, 110, 190, 'BLR-1', 'Lò hơi', 'rgba(214,69,69,.05)', 'boiler');
+    s += '<path d="M262 250 q10 -22 25 -12 q-6 -18 12 -24 q4 16 16 12 q-2 20 -18 24 z" fill="#f0a030" opacity=".85" style="pointer-events:none"/>'; // ngọn lửa
+    s += eqBox(240, 20, 34, 130, 'STK-1', 'Ống khói', '#eef1f6', 'stack');
+    s += eqBox(470, 100, 150, 70, 'TG-1', 'Tua-bin HP·IP·LP', 'rgba(43,127,212,.05)', 'turbine');
+    s += '<g data-fp="generator" class="eqg clickable"><circle class="eqbox" cx="700" cy="135" r="34"/><text class="eqlabel" x="700" y="132" text-anchor="middle" font-size="16">G</text><text class="eqname" x="700" y="146" text-anchor="middle">Máy phát</text></g>';
+    s += eqBox(770, 108, 44, 54, 'GSU-1', 'MBA', '#eef1f6', 'gsu');
     s += '<path d="M905 118 l24 0 l-12 -14 z M905 152 l24 0 l-12 14 z" fill="none" stroke="' + ELEC + '" stroke-width="2"/><text class="eqname" x="917" y="170" text-anchor="middle">Lưới 220kV</text>';
-    s += eqBox(500, 210, 120, 48, 'COND-1', 'Bình ngưng', '#eef4fb');
-    s += '<path d="M672 258 h56 l-12 -46 h-32 z" class="eqbox"/><text class="eqlabel" x="700" y="238" text-anchor="middle">CT-1</text><text class="eqname" x="700" y="250" text-anchor="middle">Tháp giải nhiệt</text>';
-    s += eqBox(360, 232, 92, 40, 'DEA/BFP', 'Khử khí + Bơm cấp', '#eef4fb');
+    s += eqBox(500, 210, 120, 48, 'COND-1', 'Bình ngưng', '#eef4fb', 'condenser');
+    s += '<g data-fp="cooltower" class="eqg clickable"><path d="M672 258 h56 l-12 -46 h-32 z" class="eqbox"/><text class="eqlabel" x="700" y="238" text-anchor="middle">CT-1</text><text class="eqname" x="700" y="250" text-anchor="middle">Tháp giải nhiệt</text></g>';
+    s += eqBox(360, 232, 92, 40, 'DEA/BFP', 'Khử khí + Bơm cấp', '#eef4fb', 'dea');
 
     // ----- Instrument bubbles -----
     s += isa(158, 150, 'coalF', 175);        // than vào nghiền
@@ -102,19 +103,19 @@
 
   /* ---- Thẻ thiết bị chính ---- */
   function eqPills() {
-    function pill(icon, name, tag, valName, uid) {
+    function pill(icon, name, tag, valName, uid, key) {
       var st = S.stat(valName, uid);
-      return '<div class="eq"><div class="eq__top"><span class="eq__code">' + C.icon(icon, '', 1.7) + ' ' + tag + '</span>' +
+      return '<div class="eq' + (key ? ' clickable' : '') + '"' + (key ? ' data-fp="' + key + '"' : '') + '><div class="eq__top"><span class="eq__code">' + C.icon(icon, '', 1.7) + ' ' + tag + '</span>' +
         C.badge(st) + '</div><div class="eq__name">' + name + '</div>' +
         '<div class="eq__val"><span data-live="' + uid + '|' + valName + '||1|1">' + F.fmt(S.val(valName, uid), S.spec(valName).dp) + ' ' + S.spec(valName).u + '</span></div></div>';
     }
     var u = S.activeUnit;
-    return pill('flame', 'Lò hơi', 'BLR-1', 'msP', u) +
-      pill('rotor', 'Tua-bin', 'TG-1', 'spd', u) +
-      pill('gen', 'Máy phát', 'GEN-1', 'mw', u) +
-      pill('drop', 'Bình ngưng', 'COND-1', 'vac', u) +
-      pill('tower', 'Tháp giải nhiệt', 'CT-1', 'cwOutT', u) +
-      pill('coal', 'Máy nghiền A', 'MILL-1A', 'millT', u);
+    return pill('flame', 'Lò hơi', 'BLR-1', 'msP', u, 'boiler') +
+      pill('rotor', 'Tua-bin', 'TG-1', 'spd', u, 'turbine') +
+      pill('gen', 'Máy phát', 'GEN-1', 'mw', u, 'generator') +
+      pill('drop', 'Bình ngưng', 'COND-1', 'vac', u, 'condenser') +
+      pill('tower', 'Tháp giải nhiệt', 'CT-1', 'cwOutT', u, 'cooltower') +
+      pill('coal', 'Máy nghiền A', 'MILL-1A', 'millT', u, 'mill');
   }
 
   /* ---- Rail phải ---- */
@@ -160,7 +161,8 @@
             '<div class="grid" style="gap:14px">' +
               '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Sơ đồ dây chuyền công nghệ</h3><span class="sub">— ' + S.unit().name + '</span><div class="spacer"></div>' +
                 '<div class="legend-row"><span class="lg"><span class="d" style="background:#d64545"></span>Hơi</span><span class="lg"><span class="d" style="background:#2b7fd4"></span>Nước</span><span class="lg"><span class="d" style="background:#7a6350"></span>Than</span><span class="lg"><span class="d" style="background:#94a3b8"></span>Khói</span></div></div>' +
-                '<div class="card__body"><div class="pid">' + pidPlant() + '</div></div></div>' +
+                '<div class="card__body"><div class="pid">' + pidPlant() + '</div>' +
+                  '<div class="pid-hint">' + C.icon('gauge', '', 1.6) + ' Bấm vào thiết bị (lò hơi, tua-bin, máy phát, bình ngưng…) để xem chi tiết</div></div></div>' +
               '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng công suất phát</h3><div class="spacer"></div>' +
                 C.legend([{ label: 'S1 (MW)', color: 'var(--series-1)' }, { label: 'S2 (MW)', color: 'var(--series-3)' }]) + '</div>' +
                 '<div class="card__body"><div class="trend"><canvas id="ov-trend"></canvas></div></div></div>' +

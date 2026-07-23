@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ThermoSCADA — Nhà máy Nhiệt điện</title>
   <meta name="description" content="Hệ SCADA trình bày trên web cho nhà máy nhiệt điện than — HMI mô phỏng, chạy hoàn toàn trên trình duyệt." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 22V13l4-3 4 3v9M18 22v-6l3-2 3 2v6' stroke='white' stroke-width='1.8' fill='none'/%3E%3C/svg%3E" />
   <style>
 /* =====================================================================
    THERMOSCADA — Design System
@@ -193,7 +192,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   .pulse, .blink { animation: none; }
 }
 
-
 /* =====================================================================
    THERMOSCADA — Layout: sidebar tối, topbar tối, content sáng
    ===================================================================== */
@@ -335,7 +333,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   .span-2, .span-3, .span-4 { grid-column: span 1; }
   .topbar__title p { display: none; }
 }
-
 
 /* =====================================================================
    THERMOSCADA — Components
@@ -547,10 +544,60 @@ ul { margin: 0; padding: 0; list-style: none; }
 .toast { background: var(--ink); color: #fff; padding: 10px 14px; border-radius: var(--r); font-size: 12.5px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; animation: toastin .2s ease; }
 @keyframes toastin { from { opacity: 0; transform: translateY(6px); } }
 
+/* ================= Equipment faceplate (drill-down chi tiết) ================= */
+/* Thiết bị bấm được trên sơ đồ P&ID */
+.pid .eqg.clickable { cursor: pointer; }
+.pid .eqg.clickable .eqbox { transition: stroke .12s, stroke-width .12s; }
+.pid .eqg.clickable:hover .eqbox { stroke: var(--brand); stroke-width: 2.2; }
+.pid .eqg.clickable:hover .eqlabel { fill: var(--brand); }
+.pid .eqg.clickable:focus-visible { outline: none; }
+.pid .eqg.clickable:focus-visible .eqbox { stroke: var(--brand); stroke-width: 2.2; }
+.pid-hint { display: inline-flex; align-items: center; gap: 6px; margin: 8px 2px 0; font-size: 11.5px; color: var(--muted); }
+.pid-hint svg { width: 14px; height: 14px; opacity: .8; }
+
+/* Thẻ thiết bị bấm được */
+.eq.clickable { cursor: pointer; transition: border-color .12s, box-shadow .12s, transform .12s; }
+.eq.clickable:hover { border-color: var(--brand); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+
+/* Overlay + hộp faceplate */
+.fp-overlay { position: fixed; inset: 0; z-index: 120; display: none; align-items: center; justify-content: center;
+  background: rgba(8, 18, 30, .55); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); padding: 18px; }
+.fp-overlay.is-open { display: flex; animation: fp-fade .14s ease; }
+@keyframes fp-fade { from { opacity: 0; } to { opacity: 1; } }
+body.fp-lock { overflow: hidden; }
+
+.fp { width: min(560px, 100%); max-height: calc(100vh - 36px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px;
+  box-shadow: var(--shadow-lg); animation: fp-pop .16s ease; }
+@keyframes fp-pop { from { transform: translateY(10px) scale(.985); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.fp__head { display: flex; align-items: center; gap: 11px; padding: 14px 14px 11px; border-bottom: 1px solid var(--line); }
+.fp__ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; flex: none;
+  background: var(--brand-wash); color: var(--brand); }
+.fp__ic svg { width: 21px; height: 21px; }
+.fp__ttl { flex: 1; min-width: 0; }
+.fp__code { font-size: 11.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.fp__name { font-size: 15.5px; font-weight: 750; color: var(--ink); line-height: 1.2; }
+.fp__badge { flex: none; }
+.fp__x { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: none; background: transparent;
+  color: var(--muted-2); border-radius: 8px; cursor: pointer; transition: all .12s; }
+.fp__x:hover { background: var(--surface-3); color: var(--ink); }
+.fp__desc { padding: 9px 15px 0; font-size: 12.5px; color: var(--muted); }
+.fp__body { display: grid; grid-template-columns: 172px 1fr; gap: 4px 16px; align-items: center; padding: 6px 16px 10px; }
+.fp__gauge { display: grid; place-items: center; padding: 4px 0; }
+.fp__list { display: grid; }
+.fp__list .metric:last-child { border-bottom: none; }
+.fp__foot { display: flex; align-items: center; gap: 10px; padding: 11px 15px 14px; border-top: 1px solid var(--line); }
+.fp__hint { flex: 1; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.fp__hint .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+@media (max-width: 560px) { .fp__body { grid-template-columns: 1fr; } }
+
   </style>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 22V13l4-3 4 3v9M18 22v-6l3-2 3 2v6' stroke='white' stroke-width='1.8' fill='none'/%3E%3C/svg%3E" />
 </head>
 <body>
   <div id="app" class="app">
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand__logo" aria-hidden="true">
@@ -562,7 +609,7 @@ ul { margin: 0; padding: 0; list-style: none; }
         </div>
       </div>
 
-      <nav class="nav" id="nav" aria-label="Điều hướng chính"></nav>
+      <nav class="nav" id="nav" aria-label="Điều hướng chính"><!-- injected by app.js --></nav>
 
       <div class="sidebar__foot">
         <div class="kv"><span>Chế độ</span><b>HMI · Demo</b></div>
@@ -570,16 +617,15 @@ ul { margin: 0; padding: 0; list-style: none; }
       </div>
     </aside>
 
+    <!-- Main column -->
     <div class="main">
-      <header class="topbar" id="topbar"></header>
-      <main class="content" id="view" tabindex="-1"></main>
+      <header class="topbar" id="topbar"><!-- injected by app.js --></header>
+      <main class="content" id="view" tabindex="-1"><!-- views render here --></main>
     </div>
   </div>
 
-
-
+  <!-- Core -->
   <script>
-/* ==== js/core/format.js ==== */
 /* =====================================================================
    THERMOSCADA — Formatting helpers
    ===================================================================== */
@@ -628,8 +674,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/core/store.js ==== */
 /* =====================================================================
    THERMOSCADA — Store
    Mô hình nhà máy (2 tổ máy) + "tag database" (metadata) + pub/sub.
@@ -778,8 +822,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   global.Store = Store;
 })(window);
 
-
-/* ==== js/core/engine.js ==== */
 /* =====================================================================
    THERMOSCADA — Engine (mô phỏng)
    Sinh dữ liệu "sống" cho HMI: một biến điều khiển "tải" cho mỗi tổ máy,
@@ -1056,8 +1098,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/core/components.js ==== */
 /* =====================================================================
    THERMOSCADA — Components (render helpers, không phụ thuộc thư viện)
    ===================================================================== */
@@ -1426,8 +1466,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/core/router.js ==== */
 /* =====================================================================
    THERMOSCADA — Hash Router
    View = { title, subtitle, render(root), update?() }
@@ -1472,8 +1510,99 @@ ul { margin: 0; padding: 0; list-style: none; }
   global.Router = Router;
 })(window);
 
+/* =====================================================================
+   THERMOSCADA — Equipment Faceplate (drill-down popup, kiểu SCADA thật)
+   Bấm một thiết bị trên sơ đồ P&ID (hoặc thẻ thiết bị) → mở faceplate:
+   thông số trực tiếp của thiết bị + nút mở màn hình phân hệ đầy đủ.
+   Cập nhật tại chỗ theo từng nhịp mô phỏng (data-live / data-gauge / data-meter).
+   ===================================================================== */
+(function (global) {
+  'use strict';
+  var S = global.Store, C = global.C;
 
-/* ==== js/views/overview.js ==== */
+  /* Bản đồ thiết bị: key → {code, name, icon, view, desc, tags[]}
+     - view: màn hình phân hệ để "mở đầy đủ" (dùng chung Router)
+     - tags: điểm đo của thiết bị; tags[0] hiển thị dạng gauge, còn lại dạng hàng */
+  var EQ = {
+    bunker:    { code: 'CB-1A',   name: 'Bunker than',            icon: 'coal',  view: 'fuel',       desc: 'Kho than cấp cho máy nghiền',        tags: ['bunkL', 'beltL', 'feedR'] },
+    mill:      { code: 'MILL-1A', name: 'Máy nghiền than',        icon: 'coal',  view: 'fuel',       desc: 'Nghiền than mịn cấp buồng lửa',      tags: ['millT', 'millI', 'millDP', 'coalF'] },
+    boiler:    { code: 'BLR-1',   name: 'Lò hơi',                 icon: 'flame', view: 'boiler',     desc: 'Sinh hơi quá nhiệt cấp cho tua-bin', tags: ['msP', 'msT', 'drumL', 'o2', 'furnP', 'feedF'] },
+    stack:     { code: 'STK-1',   name: 'Ống khói & CEMS',        icon: 'smoke', view: 'emissions',  desc: 'Thải khói · quan trắc phát thải',    tags: ['stkT', 'so2', 'nox', 'dust', 'opac'] },
+    turbine:   { code: 'TG-1',    name: 'Tua-bin HP·IP·LP',       icon: 'rotor', view: 'turbine',    desc: 'Biến nhiệt năng hơi thành cơ năng',  tags: ['spd', 'mw', 'brgT', 'vib', 'expD', 'stExh'] },
+    generator: { code: 'GEN-1',   name: 'Máy phát',               icon: 'gen',   view: 'electrical', desc: 'Máy phát đồng bộ 3 pha',             tags: ['mw', 'mvar', 'genU', 'pf', 'statT', 'exI'] },
+    gsu:       { code: 'GSU-1',   name: 'Máy biến áp đầu cực',    icon: 'bolt',  view: 'electrical', desc: 'Nâng áp máy phát lên lưới 220kV',    tags: ['genU', 'hvU', 'freq'] },
+    condenser: { code: 'COND-1',  name: 'Bình ngưng',             icon: 'drop',  view: 'feedwater',  desc: 'Ngưng hơi thoát · giữ chân không',   tags: ['vac', 'condL', 'hwT'] },
+    cooltower: { code: 'CT-1',    name: 'Tháp giải nhiệt',        icon: 'tower', view: 'cooling',    desc: 'Thải nhiệt nước tuần hoàn ra không khí', tags: ['cwInT', 'cwOutT', 'ctApp', 'cwF'] },
+    dea:       { code: 'DEA/BFP', name: 'Khử khí & Bơm nước cấp', icon: 'pump',  view: 'feedwater',  desc: 'Khử O₂ · bơm nước cấp vào lò',       tags: ['deaP', 'deaT', 'deaL', 'bfpP', 'bfpF'] }
+  };
+
+  var host = null, unsub = null;
+
+  function ensureHost() {
+    if (host) return host;
+    host = document.createElement('div');
+    host.className = 'fp-overlay';
+    host.addEventListener('click', function (e) {
+      if (e.target === host || e.target.closest('[data-fp-close]')) { close(); return; }
+      var go = e.target.closest('[data-fp-go]');
+      if (go) { var v = go.getAttribute('data-fp-go'); close(); if (global.Router) global.Router.go(v); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && host && host.classList.contains('is-open')) close();
+    });
+    document.body.appendChild(host);
+    return host;
+  }
+
+  function worstOf(tags, uid) {
+    var w = 'ok';
+    tags.forEach(function (n) { var st = S.stat(n, uid); if (st === 'alarm') w = 'alarm'; else if (st === 'warn' && w !== 'alarm') w = 'warn'; });
+    return w;
+  }
+
+  function render(key) {
+    var eq = EQ[key]; if (!eq) return;
+    var uid = S.activeUnit, unit = S.unit(uid);
+    var head = eq.tags[0], rest = eq.tags.slice(1);
+    var h = '<div class="fp" role="dialog" aria-modal="true" aria-label="' + eq.code + ' — ' + eq.name + '">';
+    h += '<div class="fp__head">';
+    h += '<span class="fp__ic">' + C.icon(eq.icon, '', 1.7) + '</span>';
+    h += '<div class="fp__ttl"><div class="fp__code">' + unit.id + ' · ' + eq.code + '</div><div class="fp__name">' + eq.name + '</div></div>';
+    h += '<span class="fp__badge">' + C.badge(worstOf(eq.tags, uid)) + '</span>';
+    h += '<button class="fp__x" data-fp-close aria-label="Đóng">' + C.icon('xcirc', '', 1.8) + '</button>';
+    h += '</div>';
+    h += '<div class="fp__desc">' + eq.desc + '</div>';
+    h += '<div class="fp__body">';
+    h += '<div class="fp__gauge">' + C.gaugeBox(head, uid, { size: 150 }) + '</div>';
+    h += '<div class="fp__list">' + rest.map(function (n) { return C.metric(n, uid, { bar: false }); }).join('') + '</div>';
+    h += '</div>';
+    h += '<div class="fp__foot"><span class="fp__hint"><span class="dot pulse" style="background:var(--ok)"></span>Mô phỏng thời gian thực · ' + unit.name + '</span>';
+    h += '<button class="btn btn--primary" data-fp-go="' + eq.view + '">Mở màn hình đầy đủ →</button></div>';
+    h += '</div>';
+    ensureHost().innerHTML = h;
+  }
+
+  function open(key) {
+    if (!EQ[key]) return;
+    ensureHost();
+    render(key);
+    host.classList.add('is-open');
+    document.body.classList.add('fp-lock');
+    if (unsub) unsub();
+    unsub = S.subscribe(function () { if (host && host.classList.contains('is-open')) C.refresh(host); });
+  }
+
+  function close() {
+    if (!host || !host.classList.contains('is-open')) return;
+    host.classList.remove('is-open');
+    host.innerHTML = '';
+    document.body.classList.remove('fp-lock');
+    if (unsub) { unsub(); unsub = null; }
+  }
+
+  global.Faceplate = { open: open, close: close, EQ: EQ };
+})(window);
+
 /* =====================================================================
    VIEW · Tổng quan nhà máy (Plant Overview)
    ===================================================================== */
@@ -1513,8 +1642,9 @@ ul { margin: 0; padding: 0; list-style: none; }
     g += '</g>';
     return g;
   }
-  function eqBox(x, y, w, h, code, name, fill) {
-    return '<g><rect class="eqbox" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="7"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>' +
+  function eqBox(x, y, w, h, code, name, fill, key) {
+    var open = key ? '<g data-fp="' + key + '" class="eqg clickable">' : '<g>';
+    return open + '<rect class="eqbox" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="7"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>' +
       '<text class="eqlabel" x="' + (x + w / 2) + '" y="' + (y + h - 15) + '" text-anchor="middle">' + code + '</text>' +
       '<text class="eqname" x="' + (x + w / 2) + '" y="' + (y + h - 4) + '" text-anchor="middle">' + name + '</text></g>';
   }
@@ -1539,19 +1669,19 @@ ul { margin: 0; padding: 0; list-style: none; }
     s += pipe('M500 234 H452', WATER, true);                           // bình ngưng→khử khí
     s += pipe('M360 250 H300 V90', WATER, true);                       // khử khí/bơm→lò (nước cấp)
 
-    // ----- Equipment -----
-    s += eqBox(20, 150, 64, 110, 'CB-1A', 'Bunker than');
-    s += eqBox(120, 175, 76, 60, 'MILL-1A', 'Máy nghiền');
-    s += eqBox(232, 70, 110, 190, 'BLR-1', 'Lò hơi', 'rgba(214,69,69,.05)');
-    s += '<path d="M262 250 q10 -22 25 -12 q-6 -18 12 -24 q4 16 16 12 q-2 20 -18 24 z" fill="#f0a030" opacity=".85"/>'; // ngọn lửa
-    s += eqBox(240, 20, 34, 130, 'STK-1', 'Ống khói', '#eef1f6');
-    s += eqBox(470, 100, 150, 70, 'TG-1', 'Tua-bin HP·IP·LP', 'rgba(43,127,212,.05)');
-    s += '<circle class="eqbox" cx="700" cy="135" r="34"/><text class="eqlabel" x="700" y="132" text-anchor="middle" font-size="16">G</text><text class="eqname" x="700" y="146" text-anchor="middle">Máy phát</text>';
-    s += eqBox(770, 108, 44, 54, 'GSU-1', 'MBA', '#eef1f6');
+    // ----- Equipment (data-fp = mở faceplate chi tiết) -----
+    s += eqBox(20, 150, 64, 110, 'CB-1A', 'Bunker than', null, 'bunker');
+    s += eqBox(120, 175, 76, 60, 'MILL-1A', 'Máy nghiền', null, 'mill');
+    s += eqBox(232, 70, 110, 190, 'BLR-1', 'Lò hơi', 'rgba(214,69,69,.05)', 'boiler');
+    s += '<path d="M262 250 q10 -22 25 -12 q-6 -18 12 -24 q4 16 16 12 q-2 20 -18 24 z" fill="#f0a030" opacity=".85" style="pointer-events:none"/>'; // ngọn lửa
+    s += eqBox(240, 20, 34, 130, 'STK-1', 'Ống khói', '#eef1f6', 'stack');
+    s += eqBox(470, 100, 150, 70, 'TG-1', 'Tua-bin HP·IP·LP', 'rgba(43,127,212,.05)', 'turbine');
+    s += '<g data-fp="generator" class="eqg clickable"><circle class="eqbox" cx="700" cy="135" r="34"/><text class="eqlabel" x="700" y="132" text-anchor="middle" font-size="16">G</text><text class="eqname" x="700" y="146" text-anchor="middle">Máy phát</text></g>';
+    s += eqBox(770, 108, 44, 54, 'GSU-1', 'MBA', '#eef1f6', 'gsu');
     s += '<path d="M905 118 l24 0 l-12 -14 z M905 152 l24 0 l-12 14 z" fill="none" stroke="' + ELEC + '" stroke-width="2"/><text class="eqname" x="917" y="170" text-anchor="middle">Lưới 220kV</text>';
-    s += eqBox(500, 210, 120, 48, 'COND-1', 'Bình ngưng', '#eef4fb');
-    s += '<path d="M672 258 h56 l-12 -46 h-32 z" class="eqbox"/><text class="eqlabel" x="700" y="238" text-anchor="middle">CT-1</text><text class="eqname" x="700" y="250" text-anchor="middle">Tháp giải nhiệt</text>';
-    s += eqBox(360, 232, 92, 40, 'DEA/BFP', 'Khử khí + Bơm cấp', '#eef4fb');
+    s += eqBox(500, 210, 120, 48, 'COND-1', 'Bình ngưng', '#eef4fb', 'condenser');
+    s += '<g data-fp="cooltower" class="eqg clickable"><path d="M672 258 h56 l-12 -46 h-32 z" class="eqbox"/><text class="eqlabel" x="700" y="238" text-anchor="middle">CT-1</text><text class="eqname" x="700" y="250" text-anchor="middle">Tháp giải nhiệt</text></g>';
+    s += eqBox(360, 232, 92, 40, 'DEA/BFP', 'Khử khí + Bơm cấp', '#eef4fb', 'dea');
 
     // ----- Instrument bubbles -----
     s += isa(158, 150, 'coalF', 175);        // than vào nghiền
@@ -1578,19 +1708,19 @@ ul { margin: 0; padding: 0; list-style: none; }
 
   /* ---- Thẻ thiết bị chính ---- */
   function eqPills() {
-    function pill(icon, name, tag, valName, uid) {
+    function pill(icon, name, tag, valName, uid, key) {
       var st = S.stat(valName, uid);
-      return '<div class="eq"><div class="eq__top"><span class="eq__code">' + C.icon(icon, '', 1.7) + ' ' + tag + '</span>' +
+      return '<div class="eq' + (key ? ' clickable' : '') + '"' + (key ? ' data-fp="' + key + '"' : '') + '><div class="eq__top"><span class="eq__code">' + C.icon(icon, '', 1.7) + ' ' + tag + '</span>' +
         C.badge(st) + '</div><div class="eq__name">' + name + '</div>' +
         '<div class="eq__val"><span data-live="' + uid + '|' + valName + '||1|1">' + F.fmt(S.val(valName, uid), S.spec(valName).dp) + ' ' + S.spec(valName).u + '</span></div></div>';
     }
     var u = S.activeUnit;
-    return pill('flame', 'Lò hơi', 'BLR-1', 'msP', u) +
-      pill('rotor', 'Tua-bin', 'TG-1', 'spd', u) +
-      pill('gen', 'Máy phát', 'GEN-1', 'mw', u) +
-      pill('drop', 'Bình ngưng', 'COND-1', 'vac', u) +
-      pill('tower', 'Tháp giải nhiệt', 'CT-1', 'cwOutT', u) +
-      pill('coal', 'Máy nghiền A', 'MILL-1A', 'millT', u);
+    return pill('flame', 'Lò hơi', 'BLR-1', 'msP', u, 'boiler') +
+      pill('rotor', 'Tua-bin', 'TG-1', 'spd', u, 'turbine') +
+      pill('gen', 'Máy phát', 'GEN-1', 'mw', u, 'generator') +
+      pill('drop', 'Bình ngưng', 'COND-1', 'vac', u, 'condenser') +
+      pill('tower', 'Tháp giải nhiệt', 'CT-1', 'cwOutT', u, 'cooltower') +
+      pill('coal', 'Máy nghiền A', 'MILL-1A', 'millT', u, 'mill');
   }
 
   /* ---- Rail phải ---- */
@@ -1636,7 +1766,8 @@ ul { margin: 0; padding: 0; list-style: none; }
             '<div class="grid" style="gap:14px">' +
               '<div class="card"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Sơ đồ dây chuyền công nghệ</h3><span class="sub">— ' + S.unit().name + '</span><div class="spacer"></div>' +
                 '<div class="legend-row"><span class="lg"><span class="d" style="background:#d64545"></span>Hơi</span><span class="lg"><span class="d" style="background:#2b7fd4"></span>Nước</span><span class="lg"><span class="d" style="background:#7a6350"></span>Than</span><span class="lg"><span class="d" style="background:#94a3b8"></span>Khói</span></div></div>' +
-                '<div class="card__body"><div class="pid">' + pidPlant() + '</div></div></div>' +
+                '<div class="card__body"><div class="pid">' + pidPlant() + '</div>' +
+                  '<div class="pid-hint">' + C.icon('gauge', '', 1.6) + ' Bấm vào thiết bị (lò hơi, tua-bin, máy phát, bình ngưng…) để xem chi tiết</div></div></div>' +
               '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng công suất phát</h3><div class="spacer"></div>' +
                 C.legend([{ label: 'S1 (MW)', color: 'var(--series-1)' }, { label: 'S2 (MW)', color: 'var(--series-3)' }]) + '</div>' +
                 '<div class="card__body"><div class="trend"><canvas id="ov-trend"></canvas></div></div></div>' +
@@ -1667,8 +1798,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/boiler.js ==== */
 /* =====================================================================
    VIEW · Lò hơi & Đốt (Boiler & Combustion)
    ===================================================================== */
@@ -1758,8 +1887,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/turbine.js ==== */
 /* =====================================================================
    VIEW · Tua-bin & Máy phát (Turbine–Generator)
    ===================================================================== */
@@ -1837,8 +1964,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/feedwater.js ==== */
 /* =====================================================================
    VIEW · Nước cấp · Ngưng tụ · Khử khí (Feedwater / Condensate)
    ===================================================================== */
@@ -1901,8 +2026,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/cooling.js ==== */
 /* =====================================================================
    VIEW · Nước làm mát & Tháp giải nhiệt (Cooling Water / Cooling Tower)
    ===================================================================== */
@@ -2000,8 +2123,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/fuel.js ==== */
 /* =====================================================================
    VIEW · Cấp nhiên liệu — than (Fuel / Coal Handling)
    ===================================================================== */
@@ -2087,8 +2208,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/electrical.js ==== */
 /* =====================================================================
    VIEW · Điện · Máy phát · Trạm phân phối (Electrical / Switchyard)
    ===================================================================== */
@@ -2201,8 +2320,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/emissions.js ==== */
 /* =====================================================================
    VIEW · Khí thải & Quan trắc môi trường (Emissions / CEMS)
    ===================================================================== */
@@ -2279,8 +2396,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/alarms.js ==== */
 /* =====================================================================
    VIEW · Cảnh báo & Sự kiện (Alarm & Event Management)
    ===================================================================== */
@@ -2379,8 +2494,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/trends.js ==== */
 /* =====================================================================
    VIEW · Historian & Xu hướng (Trends)
    ===================================================================== */
@@ -2474,8 +2587,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/reports.js ==== */
 /* =====================================================================
    VIEW · Báo cáo (Reports — báo cáo ca / sản lượng / phát thải)
    ===================================================================== */
@@ -2588,8 +2699,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/views/config.js ==== */
 /* =====================================================================
    VIEW · Cấu hình hệ thống (Assets / Devices / Users / Settings)
    ===================================================================== */
@@ -2697,8 +2806,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   };
 })(window);
 
-
-/* ==== js/app.js ==== */
 /* =====================================================================
    THERMOSCADA — Bootstrap
    ===================================================================== */
@@ -2784,6 +2891,8 @@ ul { margin: 0; padding: 0; list-style: none; }
 
     // Bắt sự kiện click chung cho mọi view (event delegation)
     document.getElementById('view').addEventListener('click', function (e) {
+      var fp = e.target.closest('[data-fp]');
+      if (fp) { if (global.Faceplate) global.Faceplate.open(fp.getAttribute('data-fp')); return; }
       var u = e.target.closest('[data-unit]');
       if (u) { S.setUnit(u.getAttribute('data-unit')); Router.go(Router.current()); return; }
       var n = e.target.closest('[data-nav]');
@@ -2805,5 +2914,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 })(window);
 
   </script>
+
+  <!-- Views -->
+
+  <!-- Bootstrap -->
 </body>
 </html>
