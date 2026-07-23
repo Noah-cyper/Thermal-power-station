@@ -83,6 +83,10 @@
 
     // Bắt sự kiện click chung cho mọi view (event delegation)
     document.getElementById('view').addEventListener('click', function (e) {
+      var pt = e.target.closest('[data-pidtheme]');
+      if (pt) { if (V.overview && V.overview.setTheme) V.overview.setTheme(pt.getAttribute('data-pidtheme')); return; }
+      var fp = e.target.closest('[data-fp]');
+      if (fp) { if (global.Faceplate) global.Faceplate.open(fp.getAttribute('data-fp')); return; }
       var u = e.target.closest('[data-unit]');
       if (u) { S.setUnit(u.getAttribute('data-unit')); Router.go(Router.current()); return; }
       var n = e.target.closest('[data-nav]');

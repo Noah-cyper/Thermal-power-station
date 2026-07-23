@@ -207,3 +207,104 @@
 .toast-wrap { position: fixed; right: 20px; bottom: 20px; display: grid; gap: 8px; z-index: 50; }
 .toast { background: var(--ink); color: #fff; padding: 10px 14px; border-radius: var(--r); font-size: 12.5px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; animation: toastin .2s ease; }
 @keyframes toastin { from { opacity: 0; transform: translateY(6px); } }
+
+/* ================= Equipment faceplate (drill-down chi tiết) ================= */
+/* Thiết bị bấm được trên sơ đồ P&ID */
+.pid .eqg.clickable { cursor: pointer; }
+.pid .eqg.clickable .eqbox { transition: stroke .12s, stroke-width .12s; }
+.pid .eqg.clickable:hover .eqbox { stroke: var(--brand); stroke-width: 2.2; }
+.pid .eqg.clickable:hover .eqlabel { fill: var(--brand); }
+.pid .eqg.clickable:focus-visible { outline: none; }
+.pid .eqg.clickable:focus-visible .eqbox { stroke: var(--brand); stroke-width: 2.2; }
+.pid-hint { display: inline-flex; align-items: center; gap: 6px; margin: 8px 2px 0; font-size: 11.5px; color: var(--muted); }
+.pid-hint svg { width: 14px; height: 14px; opacity: .8; }
+
+/* Thẻ thiết bị bấm được */
+.eq.clickable { cursor: pointer; transition: border-color .12s, box-shadow .12s, transform .12s; }
+.eq.clickable:hover { border-color: var(--brand); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+
+/* Overlay + hộp faceplate */
+.fp-overlay { position: fixed; inset: 0; z-index: 120; display: none; align-items: center; justify-content: center;
+  background: rgba(8, 18, 30, .55); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); padding: 18px; }
+.fp-overlay.is-open { display: flex; animation: fp-fade .14s ease; }
+@keyframes fp-fade { from { opacity: 0; } to { opacity: 1; } }
+body.fp-lock { overflow: hidden; }
+
+.fp { width: min(560px, 100%); max-height: calc(100vh - 36px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px;
+  box-shadow: var(--shadow-lg); animation: fp-pop .16s ease; }
+@keyframes fp-pop { from { transform: translateY(10px) scale(.985); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.fp__head { display: flex; align-items: center; gap: 11px; padding: 14px 14px 11px; border-bottom: 1px solid var(--line); }
+.fp__ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; flex: none;
+  background: var(--brand-wash); color: var(--brand); }
+.fp__ic svg { width: 21px; height: 21px; }
+.fp__ttl { flex: 1; min-width: 0; }
+.fp__code { font-size: 11.5px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.fp__name { font-size: 15.5px; font-weight: 750; color: var(--ink); line-height: 1.2; }
+.fp__badge { flex: none; }
+.fp__x { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: none; background: transparent;
+  color: var(--muted-2); border-radius: 8px; cursor: pointer; transition: all .12s; }
+.fp__x:hover { background: var(--surface-3); color: var(--ink); }
+.fp__desc { padding: 9px 15px 0; font-size: 12.5px; color: var(--muted); }
+.fp__body { display: grid; grid-template-columns: 172px 1fr; gap: 4px 16px; align-items: center; padding: 6px 16px 10px; }
+.fp__gauge { display: grid; place-items: center; padding: 4px 0; }
+.fp__list { display: grid; }
+.fp__list .metric:last-child { border-bottom: none; }
+.fp__foot { display: flex; align-items: center; gap: 10px; padding: 11px 15px 14px; border-top: 1px solid var(--line); }
+.fp__hint { flex: 1; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.fp__hint .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+@media (max-width: 560px) { .fp__body { grid-template-columns: 1fr; } }
+
+/* ============ P&ID theme system: classic (3D) vs HP-HMI (ISA-101) ============ */
+/* Mặc định = classic (nền sáng, thiết bị gradient 3D). Biến --pid-* dùng trong SVG. */
+.pid {
+  --pid-canvas: var(--surface);
+  --pid-panel: var(--surface-3);
+  --pid-line: var(--line-strong);
+  --pid-line2: #9aa7b6;
+  --pid-dim: var(--muted);
+  --pid-genink: #7a5410;
+  --pid-shaft: #2d4c72;
+}
+.pid [data-fill="metal"]  { fill: url(#gMetal); }
+.pid [data-fill="vessel"] { fill: url(#gVessel); }
+.pid [data-fill="turbo"]  { fill: url(#gTurbo); }
+.pid [data-fill="gen"]    { fill: url(#gGen); }
+.pid [data-fill="coal"]   { fill: url(#gCoal); }
+.pid [data-fill="flame"]  { fill: url(#gFlame); }
+
+/* HP-HMI (High Performance / ISA-101): nền tối, thiết bị xám phẳng,
+   màu chỉ dùng cho ống công chất + báo bất thường. */
+.pid.hmi-hp {
+  --pid-canvas: #0f141a;
+  --pid-panel: #222a33;
+  --pid-line: #8a939c;
+  --pid-line2: #39434e;
+  --pid-dim: #8a939c;
+  --pid-genink: #d7dee6;
+  --pid-shaft: #9aa5b1;
+  background: #0f141a;
+  border-radius: 6px;
+}
+.pid.hmi-hp [data-fill="metal"],
+.pid.hmi-hp [data-fill="vessel"],
+.pid.hmi-hp [data-fill="turbo"],
+.pid.hmi-hp [data-fill="gen"]   { fill: #222a33; }
+.pid.hmi-hp [data-fill="coal"]  { fill: #39434e; }
+.pid.hmi-hp [data-fill="flame"] { fill: #c8621e; }
+.pid.hmi-hp .eqbox   { fill: #222a33; stroke: #8a939c; }
+.pid.hmi-hp .eqlabel { fill: #cdd6e0; }
+.pid.hmi-hp .eqname  { fill: #8a939c; }
+.pid.hmi-hp text     { fill: #b7c0cb; }
+.pid.hmi-hp .isa     { fill: #161d25; stroke: #3a4550; }
+.pid.hmi-hp .isacode { fill: #8a939c; }
+.pid.hmi-hp .isaval  { fill: #ffffff; }
+.pid.hmi-hp .eqg.clickable:hover .eqbox   { stroke: #4c9aff; stroke-width: 2.2; }
+.pid.hmi-hp .eqg.clickable:hover .eqlabel { fill: #4c9aff; }
+
+/* Nút chuyển 2 theme trong header sơ đồ */
+.pid-theme { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-pill); overflow: hidden; height: 26px; }
+.pid-theme button { padding: 0 11px; border: none; background: transparent; color: var(--muted); font-size: 11.5px; font-weight: 650; cursor: pointer; transition: background .12s; }
+.pid-theme button + button { border-left: 1px solid var(--line-strong); }
+.pid-theme button.is-active { background: var(--brand); color: #fff; }
