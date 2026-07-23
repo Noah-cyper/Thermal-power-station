@@ -255,3 +255,56 @@ body.fp-lock { overflow: hidden; }
 .fp__hint { flex: 1; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
 .fp__hint .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 @media (max-width: 560px) { .fp__body { grid-template-columns: 1fr; } }
+
+/* ============ P&ID theme system: classic (3D) vs HP-HMI (ISA-101) ============ */
+/* Mặc định = classic (nền sáng, thiết bị gradient 3D). Biến --pid-* dùng trong SVG. */
+.pid {
+  --pid-canvas: var(--surface);
+  --pid-panel: var(--surface-3);
+  --pid-line: var(--line-strong);
+  --pid-line2: #9aa7b6;
+  --pid-dim: var(--muted);
+  --pid-genink: #7a5410;
+  --pid-shaft: #2d4c72;
+}
+.pid [data-fill="metal"]  { fill: url(#gMetal); }
+.pid [data-fill="vessel"] { fill: url(#gVessel); }
+.pid [data-fill="turbo"]  { fill: url(#gTurbo); }
+.pid [data-fill="gen"]    { fill: url(#gGen); }
+.pid [data-fill="coal"]   { fill: url(#gCoal); }
+.pid [data-fill="flame"]  { fill: url(#gFlame); }
+
+/* HP-HMI (High Performance / ISA-101): nền tối, thiết bị xám phẳng,
+   màu chỉ dùng cho ống công chất + báo bất thường. */
+.pid.hmi-hp {
+  --pid-canvas: #0f141a;
+  --pid-panel: #222a33;
+  --pid-line: #8a939c;
+  --pid-line2: #39434e;
+  --pid-dim: #8a939c;
+  --pid-genink: #d7dee6;
+  --pid-shaft: #9aa5b1;
+  background: #0f141a;
+  border-radius: 6px;
+}
+.pid.hmi-hp [data-fill="metal"],
+.pid.hmi-hp [data-fill="vessel"],
+.pid.hmi-hp [data-fill="turbo"],
+.pid.hmi-hp [data-fill="gen"]   { fill: #222a33; }
+.pid.hmi-hp [data-fill="coal"]  { fill: #39434e; }
+.pid.hmi-hp [data-fill="flame"] { fill: #c8621e; }
+.pid.hmi-hp .eqbox   { fill: #222a33; stroke: #8a939c; }
+.pid.hmi-hp .eqlabel { fill: #cdd6e0; }
+.pid.hmi-hp .eqname  { fill: #8a939c; }
+.pid.hmi-hp text     { fill: #b7c0cb; }
+.pid.hmi-hp .isa     { fill: #161d25; stroke: #3a4550; }
+.pid.hmi-hp .isacode { fill: #8a939c; }
+.pid.hmi-hp .isaval  { fill: #ffffff; }
+.pid.hmi-hp .eqg.clickable:hover .eqbox   { stroke: #4c9aff; stroke-width: 2.2; }
+.pid.hmi-hp .eqg.clickable:hover .eqlabel { fill: #4c9aff; }
+
+/* Nút chuyển 2 theme trong header sơ đồ */
+.pid-theme { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-pill); overflow: hidden; height: 26px; }
+.pid-theme button { padding: 0 11px; border: none; background: transparent; color: var(--muted); font-size: 11.5px; font-weight: 650; cursor: pointer; transition: background .12s; }
+.pid-theme button + button { border-left: 1px solid var(--line-strong); }
+.pid-theme button.is-active { background: var(--brand); color: #fff; }

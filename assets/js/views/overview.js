@@ -29,8 +29,12 @@
      Sơ đồ công nghệ (P&ID chi tiết) — mimic kiểu SCADA công nghiệp
      Ống tô theo màu công chất · thiết bị vẽ ký hiệu thật · điểm đo live
      ============================================================ */
-  var STEAM = '#d64545', RH = '#e07a7a', WATER = '#2b7fd4', COND = '#5aa0e0',
-    COAL = '#8a6d4b', FLUE = '#c2a83e', AIR = '#2fa8a0', ELEC = '#e0a300', SHAFT = '#4b5a72';
+  // Màu môi chất theo ISA-101 / master prompt §9.4 (dùng chung 2 theme)
+  var STEAM = '#D93A3A', RH = '#E8791E', WATER = '#2E6FD9', COND = '#29A38A', CW = '#1FA5D6',
+    COAL = '#4A4A4A', FLUE = '#8B7355', AIR = '#93B8D8', ELEC = '#E0A300', SHAFT = '#7B8794';
+
+  // Theme sơ đồ: 'hp' = High Performance HMI (ISA-101, mặc định) · 'classic' = 3D nhiều màu
+  var PIDTHEME = 'hp';
 
   // Bong bóng đo ISA (2 dòng mã + giá trị live). dir: 'down'|'up'|'left'|'right' cho vạch nối
   function isa(cx, cy, name, tick, dir, r) {
@@ -43,7 +47,7 @@
       if (dir === 'left') { x2 = tick; y2 = cy; } else if (dir === 'right') { x2 = tick; y2 = cy; }
       var x1 = cx, y1 = cy;
       if (dir === 'left') x1 = cx - r; else if (dir === 'right') x1 = cx + r; else if (dir === 'up') y1 = cy - r; else y1 = cy + r;
-      g += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="2 2"/>';
+      g += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="var(--pid-line)" stroke-width="1" stroke-dasharray="2 2"/>';
     }
     g += '<circle class="isa" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
     g += '<text class="isacode" x="' + cx + '" y="' + (cy - 3) + '" text-anchor="middle">' + parts[0] + '</text>';
@@ -57,7 +61,7 @@
   }
   function lbl(x, y, t, cls) { return '<text class="' + (cls || 'eqname') + '" x="' + x + '" y="' + y + '" text-anchor="middle">' + t + '</text>'; }
   function code(x, y, t) { return '<text class="eqlabel" x="' + x + '" y="' + y + '" text-anchor="middle">' + t + '</text>'; }
-  function motor(cx, cy) { return '<rect x="' + (cx - 7) + '" y="' + (cy - 6) + '" width="14" height="12" rx="2" fill="var(--surface-3)" stroke="var(--line-strong)" stroke-width="1"/><text x="' + cx + '" y="' + (cy + 3.5) + '" text-anchor="middle" font-size="8" font-weight="700" fill="var(--muted)">M</text>'; }
+  function motor(cx, cy) { return '<rect x="' + (cx - 7) + '" y="' + (cy - 6) + '" width="14" height="12" rx="2" fill="var(--pid-panel)" stroke="var(--pid-line)" stroke-width="1"/><text x="' + cx + '" y="' + (cy + 3.5) + '" text-anchor="middle" font-size="8" font-weight="700" fill="var(--pid-dim)">M</text>'; }
   // Bơm: vòng tròn + cánh + động cơ; clickable nếu có key
   function pump(cx, cy, r, col, key, cd) {
     var g = key ? '<g data-fp="' + key + '" class="eqg clickable">' : '<g>';
@@ -70,7 +74,7 @@
   // Quạt: vòng tròn + 4 cánh cong quay
   function fan(cx, cy, r, key, cd) {
     var bl = '';
-    for (var i = 0; i < 4; i++) bl += '<path d="M0 0 Q' + (r * 0.78) + ' ' + (-r * 0.28) + ' ' + (r * 0.92) + ' 0 Q' + (r * 0.4) + ' ' + (r * 0.12) + ' 0 0Z" fill="var(--muted-2)" opacity=".5" transform="rotate(' + (i * 90) + ')"/>';
+    for (var i = 0; i < 4; i++) bl += '<path d="M0 0 Q' + (r * 0.78) + ' ' + (-r * 0.28) + ' ' + (r * 0.92) + ' 0 Q' + (r * 0.4) + ' ' + (r * 0.12) + ' 0 0Z" fill="var(--pid-line2)" opacity=".5" transform="rotate(' + (i * 90) + ')"/>';
     var g = key ? '<g data-fp="' + key + '" class="eqg clickable">' : '<g>';
     g += '<circle class="eqbox" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
     g += '<g transform="translate(' + cx + ' ' + cy + ')">' + bl + '<circle r="3" fill="var(--muted)"/></g><g class="fan-spin" transform="translate(' + cx + ' ' + cy + ')"></g>';
@@ -79,12 +83,12 @@
   }
   function valve(cx, cy, col) {
     var s = 6.5;
-    return '<path d="M' + (cx - s) + ' ' + (cy - s) + ' L' + cx + ' ' + cy + ' L' + (cx - s) + ' ' + (cy + s) + ' Z M' + (cx + s) + ' ' + (cy - s) + ' L' + cx + ' ' + cy + ' L' + (cx + s) + ' ' + (cy + s) + ' Z" fill="' + (col || '#fff') + '" stroke="var(--line-strong)" stroke-width="1.1"/>';
+    return '<path d="M' + (cx - s) + ' ' + (cy - s) + ' L' + cx + ' ' + cy + ' L' + (cx - s) + ' ' + (cy + s) + ' Z M' + (cx + s) + ' ' + (cy - s) + ' L' + cx + ' ' + cy + ' L' + (cx + s) + ' ' + (cy + s) + ' Z" fill="' + (col || '#fff') + '" stroke="var(--pid-line)" stroke-width="1.1"/>';
   }
   function heatx(x, y, w, h) { // bộ trao đổi nhiệt (coil zig-zag)
     var d = 'M' + (x + 4) + ' ' + (y + h / 2), n = Math.floor((w - 8) / 8);
     for (var i = 0; i < n; i++) d += ' l4 ' + (i % 2 ? h / 2.6 : -h / 2.6) + ' l4 ' + (i % 2 ? -h / 2.6 : h / 2.6);
-    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" fill="url(#gMetal)" stroke="var(--line-strong)" stroke-width="1.2"/><path d="' + d + '" fill="none" stroke="var(--muted-2)" stroke-width="1.3"/>';
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="3" data-fill="metal" stroke="var(--pid-line)" stroke-width="1.2"/><path d="' + d + '" fill="none" stroke="var(--pid-line2)" stroke-width="1.3"/>';
   }
 
   function pidPlant() {
@@ -98,7 +102,7 @@
       '<linearGradient id="gGen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7dd97"/><stop offset="1" stop-color="#d79a2b"/></linearGradient>' +
       '<radialGradient id="gCoal" cx=".5" cy=".3" r=".9"><stop offset="0" stop-color="#a2825c"/><stop offset="1" stop-color="#6d5637"/></radialGradient>' +
       '</defs>';
-    s += '<rect x="0" y="0" width="1400" height="620" fill="var(--surface)"/>';
+    s += '<rect x="0" y="0" width="1400" height="620" fill="var(--pid-canvas)"/>';
 
     /* =================== ỐNG (vẽ trước, nằm dưới) =================== */
     // Than (nâu)
@@ -129,89 +133,89 @@
     s += pipe('M380 500 H352 Q332 500 332 520 V540', WATER, 5, true);       // DEA→BFP
     s += pipe('M332 566 V596 H284 V126 H296', WATER, 5, true);              // BFP→nước cấp→bao hơi (ngoài lò)
     // Nước làm mát (xanh nhạt): bình ngưng↔tháp
-    s += pipe('M714 380 H980', COND, 6, true);                             // bình ngưng→tháp (nóng)
-    s += pipe('M1040 452 V500 H714 V396', WATER, 6, true);                 // tháp→bình ngưng (lạnh)
+    s += pipe('M714 380 H980', CW, 6, true);                               // bình ngưng→tháp (nóng)
+    s += pipe('M1040 452 V500 H714 V396', CW, 6, true);                    // tháp→bình ngưng (lạnh)
 
     /* =================== THIẾT BỊ =================== */
     // ----- Bunker than -----
     s += '<g data-fp="bunker" class="eqg clickable">';
     s += '<path class="eqbox" d="M56 44 H136 V96 L108 150 H84 L56 96 Z"/>';
-    s += '<path d="M64 54 H128 V94 L104 138 H88 L64 94 Z" fill="url(#gCoal)" opacity=".55" style="pointer-events:none"/>';
+    s += '<path d="M64 54 H128 V94 L104 138 H88 L64 94 Z" data-fill="coal" opacity=".55" style="pointer-events:none"/>';
     s += code(96, 40, 'CB-1A') + '</g>';
     s += lbl(96, 30, 'Bunker than');
     s += '<rect class="eqbox" x="74 " y="150" width="44" height="14" rx="2"/>' + code(96, 161, 'FEEDER');
     // ----- Máy nghiền -----
     s += '<g data-fp="mill" class="eqg clickable"><circle class="eqbox" cx="120" cy="250" r="30"/>' +
-      '<circle cx="120" cy="250" r="17" fill="none" stroke="var(--muted-2)" stroke-width="1.5"/><circle cx="120" cy="250" r="4" fill="var(--muted-2)"/>' +
+      '<circle cx="120" cy="250" r="17" fill="none" stroke="var(--pid-line2)" stroke-width="1.5"/><circle cx="120" cy="250" r="4" fill="var(--pid-line2)"/>' +
       code(120, 292, 'MILL-1A') + '</g>' + motor(88, 250) + lbl(120, 304, 'Máy nghiền');
     // ----- FD fan (quạt gió cấp) -----
     s += fan(120, 470, 22, 'boiler', 'FD-FAN') + lbl(120, 512, 'Quạt gió cấp');
 
     // ----- Lò hơi (buồng lửa + bao hơi) -----
     s += '<g data-fp="boiler" class="eqg clickable">';
-    s += '<rect class="eqbox" x="300" y="150" width="120" height="250" rx="6" style="fill:url(#gVessel)"/>';
+    s += '<rect class="eqbox" x="300" y="150" width="120" height="250" rx="6" data-fill="vessel"/>';
     // membrane wall
-    for (var mw = 312; mw < 420; mw += 12) s += '<line x1="' + mw + '" y1="152" x2="' + mw + '" y2="336" stroke="var(--line)" stroke-width="1" style="pointer-events:none"/>';
+    for (var mw = 312; mw < 420; mw += 12) s += '<line x1="' + mw + '" y1="152" x2="' + mw + '" y2="336" stroke="var(--pid-line2)" stroke-width="1" style="pointer-events:none"/>';
     // superheater coils
-    s += '<path d="M308 172 h104 M308 184 h104 M308 196 h104" stroke="var(--muted-2)" stroke-width="2" fill="none" style="pointer-events:none"/>';
+    s += '<path d="M308 172 h104 M308 184 h104 M308 196 h104" stroke="var(--pid-line2)" stroke-width="2" fill="none" style="pointer-events:none"/>';
     // bao hơi (drum)
-    s += '<rect class="eqbox" x="296" y="104" width="128" height="40" rx="20" style="fill:url(#gMetal)"/>';
+    s += '<rect class="eqbox" x="296" y="104" width="128" height="40" rx="20" data-fill="metal"/>';
     s += code(360, 128, 'BAO HƠI');
     s += code(360, 396, 'BLR-1') + '</g>';
     s += lbl(360, 414, 'Lò hơi · Buồng lửa');
     // ngọn lửa (trang trí)
-    s += '<path d="M322 392 q6 -46 30 -24 q-10 -40 26 -50 q8 34 30 22 q-2 46 -34 52 q-22 6 -30 -2 z" fill="url(#gFlame)" opacity=".9" style="pointer-events:none"/>';
+    s += '<path d="M322 392 q6 -46 30 -24 q-10 -40 26 -50 q8 34 30 22 q-2 46 -34 52 q-22 6 -30 -2 z" data-fill="flame" opacity=".9" style="pointer-events:none"/>';
     // bed temp
     s += '<g style="pointer-events:none">';
-    for (var bt = 0; bt < 4; bt++) s += '<rect x="' + (312 + bt * 26) + '" y="372" width="22" height="13" rx="2" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1"/>';
+    for (var bt = 0; bt < 4; bt++) s += '<rect x="' + (312 + bt * 26) + '" y="372" width="22" height="13" rx="2" fill="var(--pid-panel)" stroke="var(--pid-line)" stroke-width="1"/>';
     s += lbl(360, 368, 'Bed temp', 'eqname') + '</g>';
 
     // ----- Đường khói: ECO, APH, ESP, FGD, ID fan (bên phải bao hơi) -----
     s += heatx(430, 62, 26, 70) + code(443, 148, 'ECO');            // economizer
-    s += '<rect class="eqbox" x="486" y="60" width="52" height="72" rx="4" style="fill:url(#gMetal)"/>' +
-      '<path d="M492 66 l40 60 M532 66 l-40 60 M492 96 h40" stroke="var(--muted-2)" stroke-width="1.2" style="pointer-events:none"/>' + code(512, 148, 'APH');
-    s += '<g data-fp="stack" class="eqg clickable"><rect class="eqbox" x="556" y="50" width="68" height="92" rx="4" style="fill:url(#gMetal)"/>';
-    for (var ep = 566; ep < 624; ep += 10) s += '<line x1="' + ep + '" y1="58" x2="' + ep + '" y2="134" stroke="var(--muted-2)" stroke-width="1.1" style="pointer-events:none"/>';
+    s += '<rect class="eqbox" x="486" y="60" width="52" height="72" rx="4" data-fill="metal"/>' +
+      '<path d="M492 66 l40 60 M532 66 l-40 60 M492 96 h40" stroke="var(--pid-line2)" stroke-width="1.2" style="pointer-events:none"/>' + code(512, 148, 'APH');
+    s += '<g data-fp="stack" class="eqg clickable"><rect class="eqbox" x="556" y="50" width="68" height="92" rx="4" data-fill="metal"/>';
+    for (var ep = 566; ep < 624; ep += 10) s += '<line x1="' + ep + '" y1="58" x2="' + ep + '" y2="134" stroke="var(--pid-line2)" stroke-width="1.1" style="pointer-events:none"/>';
     s += code(590, 156, 'ESP · Lọc bụi') + '</g>';
-    s += '<rect class="eqbox" x="650" y="56" width="50" height="84" rx="6" style="fill:url(#gMetal)"/>' + code(675, 156, 'FGD') + lbl(675, 48, 'Khử SO₂');
+    s += '<rect class="eqbox" x="650" y="56" width="50" height="84" rx="6" data-fill="metal"/>' + code(675, 156, 'FGD') + lbl(675, 48, 'Khử SO₂');
     s += fan(742, 96, 22, 'stack', 'ID-FAN') + lbl(742, 142, 'Quạt khói');
     // ----- Ống khói + CEMS -----
-    s += '<g data-fp="stack" class="eqg clickable"><rect class="eqbox" x="832" y="34" width="34" height="120" rx="3" style="fill:url(#gMetal)"/>' +
-      '<path d="M840 34 q6 -16 -2 -26 q16 6 10 -14" fill="none" stroke="var(--muted-2)" stroke-width="2" opacity=".6" style="pointer-events:none"/>' +
+    s += '<g data-fp="stack" class="eqg clickable"><rect class="eqbox" x="832" y="34" width="34" height="120" rx="3" data-fill="metal"/>' +
+      '<path d="M840 34 q6 -16 -2 -26 q16 6 10 -14" fill="none" stroke="var(--pid-line2)" stroke-width="2" opacity=".6" style="pointer-events:none"/>' +
       code(849, 170, 'STK-1') + '</g>' + lbl(849, 182, 'Ống khói · CEMS');
 
     // ----- Tua-bin + Máy phát + GSU + Lưới -----
     s += '<g data-fp="turbine" class="eqg clickable">' +
-      '<path class="eqbox" d="M556 240 h40 v-14 h44 v-16 h56 v72 h-56 v-16 h-44 v-14 h-40 z" style="fill:url(#gTurbo)"/>' +
-      '<path d="M556 268 H712" stroke="#2d4c72" stroke-width="1.5" style="pointer-events:none"/>' +
+      '<path class="eqbox" d="M556 240 h40 v-14 h44 v-16 h56 v72 h-56 v-16 h-44 v-14 h-40 z" data-fill="turbo"/>' +
+      '<path d="M556 268 H712" stroke="var(--pid-shaft)" stroke-width="1.5" style="pointer-events:none"/>' +
       code(636, 300, 'TG-1') + '</g>' + lbl(636, 312, 'Tua-bin HP·IP·LP');
-    s += '<g data-fp="generator" class="eqg clickable"><circle class="eqbox" cx="806" cy="268" r="34" style="fill:url(#gGen)"/>' +
-      '<text x="806" y="266" text-anchor="middle" font-size="17" font-weight="750" fill="#7a5410" style="pointer-events:none">G</text>' +
-      '<path d="M790 278 q16 -14 32 0" stroke="#7a5410" stroke-width="1.6" fill="none" style="pointer-events:none"/>' +
+    s += '<g data-fp="generator" class="eqg clickable"><circle class="eqbox" cx="806" cy="268" r="34" data-fill="gen"/>' +
+      '<text x="806" y="266" text-anchor="middle" font-size="17" font-weight="750" fill="var(--pid-genink)" style="pointer-events:none">G</text>' +
+      '<path d="M790 278 q16 -14 32 0" stroke="var(--pid-genink)" stroke-width="1.6" fill="none" style="pointer-events:none"/>' +
       code(806, 314, 'GEN-1') + '</g>';
     s += '<g data-fp="gsu" class="eqg clickable"><circle class="eqbox" cx="936" cy="262" r="16"/><circle class="eqbox" cx="936" cy="278" r="16"/>' +
       code(966, 300, 'GSU-1') + '</g>' + lbl(936, 314, 'MBA đầu cực');
     // sân 220kV
     s += '<line x1="1090" y1="120" x2="1090" y2="196" stroke="' + ELEC + '" stroke-width="4"/>';
     s += '<path d="M1120 150 h30 l-15 -16 z M1120 168 h30 l-15 16 z" fill="none" stroke="' + ELEC + '" stroke-width="2"/>';
-    s += '<path d="M1180 190 l14 -40 l14 40 M1180 190 h28 M1187 168 h14" stroke="var(--muted-2)" stroke-width="1.6" fill="none"/>';
+    s += '<path d="M1180 190 l14 -40 l14 40 M1180 190 h28 M1187 168 h14" stroke="var(--pid-line2)" stroke-width="1.6" fill="none"/>';
     s += lbl(1150, 210, 'Sân phân phối 220kV');
 
     // ----- Bình ngưng + tháp giải nhiệt + nước cấp -----
-    s += '<g data-fp="condenser" class="eqg clickable"><rect class="eqbox" x="584" y="360" width="130" height="52" rx="5" style="fill:url(#gMetal)"/>' +
+    s += '<g data-fp="condenser" class="eqg clickable"><rect class="eqbox" x="584" y="360" width="130" height="52" rx="5" data-fill="metal"/>' +
       '<path d="M592 372 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0" fill="none" stroke="' + WATER + '" stroke-width="1.6" opacity=".7" style="pointer-events:none"/>' +
       '<path d="M592 398 q10 8 20 0 q10 -8 20 0 q10 8 20 0 q10 -8 20 0 q10 8 20 0" fill="none" stroke="' + WATER + '" stroke-width="1.6" opacity=".7" style="pointer-events:none"/>' +
       code(649, 404, 'COND-1') + '</g>' + lbl(649, 428, 'Bình ngưng');
     s += pump(520, 486, 15, COND, 'condenser', 'CEP') + lbl(520, 528, 'Bơm ngưng');
     // Deaerator
-    s += '<g data-fp="dea" class="eqg clickable"><rect class="eqbox" x="380" y="456" width="120" height="30" rx="15" style="fill:url(#gMetal)"/>' +
-      '<rect class="eqbox" x="404" y="486" width="72" height="26" rx="4" style="fill:url(#gMetal)"/>' +
+    s += '<g data-fp="dea" class="eqg clickable"><rect class="eqbox" x="380" y="456" width="120" height="30" rx="15" data-fill="metal"/>' +
+      '<rect class="eqbox" x="404" y="486" width="72" height="26" rx="4" data-fill="metal"/>' +
       code(440, 476, 'DEA') + '</g>' + lbl(440, 448, 'Khử khí + Bể chứa');
     s += pump(332, 553, 15, WATER, 'dea', 'BFP') + lbl(332, 597, 'Bơm nước cấp');
     // Tháp giải nhiệt (hyperbolic)
-    s += '<g data-fp="cooltower" class="eqg clickable"><path class="eqbox" d="M986 380 h68 l-14 42 q-20 8 -40 0 z" style="fill:url(#gMetal)"/>' +
-      '<path class="eqbox" d="M980 452 h80 v14 h-80 z" style="fill:url(#gMetal)"/>' +
-      '<ellipse cx="1020" cy="380" rx="34" ry="6" fill="var(--surface-2)" stroke="var(--line-strong)" stroke-width="1.2" style="pointer-events:none"/>' +
+    s += '<g data-fp="cooltower" class="eqg clickable"><path class="eqbox" d="M986 380 h68 l-14 42 q-20 8 -40 0 z" data-fill="metal"/>' +
+      '<path class="eqbox" d="M980 452 h80 v14 h-80 z" data-fill="metal"/>' +
+      '<ellipse cx="1020" cy="380" rx="34" ry="6" fill="var(--pid-panel)" stroke="var(--pid-line)" stroke-width="1.2" style="pointer-events:none"/>' +
       code(1020, 444, 'CT-1') + '</g>' + fan(1020, 372, 12) + lbl(1020, 484, 'Tháp giải nhiệt');
 
     /* =================== ĐIỂM ĐO (live) =================== */
@@ -310,14 +314,20 @@
           '<div class="grid cols-6" id="ov-kpi">' + kpiCards() + '</div>' +
           '<div class="card" style="margin-top:14px"><div class="card__head">' + C.icon('layers', 'ico') + '<h3>Sơ đồ công nghệ nhà máy</h3><span class="sub">— ' + S.unit().name + '</span><div class="spacer"></div>' +
             '<div class="legend-row">' +
-              '<span class="lg"><span class="d" style="background:#d64545"></span>Hơi</span>' +
-              '<span class="lg"><span class="d" style="background:#2b7fd4"></span>Nước</span>' +
-              '<span class="lg"><span class="d" style="background:#c2a83e"></span>Khói</span>' +
-              '<span class="lg"><span class="d" style="background:#2fa8a0"></span>Gió</span>' +
-              '<span class="lg"><span class="d" style="background:#8a6d4b"></span>Than</span>' +
-              '<span class="lg"><span class="d" style="background:#e0a300"></span>Điện</span></div></div>' +
-            '<div class="card__body"><div class="pid pid--full">' + pidPlant() + '</div>' +
-              '<div class="pid-hint">' + C.icon('gauge', '', 1.6) + ' Bấm vào thiết bị (lò hơi, tua-bin, máy phát, bình ngưng, tháp giải nhiệt…) để mở faceplate chi tiết</div></div></div>' +
+              '<span class="lg"><span class="d" style="background:' + STEAM + '"></span>Hơi</span>' +
+              '<span class="lg"><span class="d" style="background:' + WATER + '"></span>Nước cấp</span>' +
+              '<span class="lg"><span class="d" style="background:' + COND + '"></span>Ngưng</span>' +
+              '<span class="lg"><span class="d" style="background:' + CW + '"></span>Tuần hoàn</span>' +
+              '<span class="lg"><span class="d" style="background:' + FLUE + '"></span>Khói</span>' +
+              '<span class="lg"><span class="d" style="background:' + AIR + '"></span>Gió</span>' +
+              '<span class="lg"><span class="d" style="background:' + COAL + '"></span>Than</span>' +
+              '<span class="lg"><span class="d" style="background:' + ELEC + '"></span>Điện</span></div>' +
+            '<div class="pid-theme" style="margin-left:12px">' +
+              '<button data-pidtheme="hp"' + (PIDTHEME === 'hp' ? ' class="is-active"' : '') + '>HP-HMI</button>' +
+              '<button data-pidtheme="classic"' + (PIDTHEME === 'classic' ? ' class="is-active"' : '') + '>Cổ điển</button>' +
+            '</div></div>' +
+            '<div class="card__body"><div class="pid pid--full' + (PIDTHEME === 'hp' ? ' hmi-hp' : '') + '">' + pidPlant() + '</div>' +
+              '<div class="pid-hint">' + C.icon('gauge', '', 1.6) + ' Bấm vào thiết bị (lò hơi, tua-bin, máy phát, bình ngưng, tháp giải nhiệt…) để mở faceplate chi tiết · ISA-101 High Performance HMI</div></div></div>' +
           '<div class="layout-rail" style="margin-top:14px">' +
             '<div class="grid" style="gap:14px">' +
               '<div class="card"><div class="card__head">' + C.icon('activity', 'ico') + '<h3>Xu hướng công suất phát</h3><div class="spacer"></div>' +
@@ -334,6 +344,14 @@
           '</div>' +
         '</div>';
       drawTrend(root);
+      // KKS tooltip (native <title>) trên từng thiết bị P&ID
+      var EQ = (global.Faceplate && global.Faceplate.EQ) || {}, up = S.activeUnit === 'S2' ? '2' : '1';
+      root.querySelectorAll('.pid--full [data-fp]').forEach(function (g) {
+        var eq = EQ[g.getAttribute('data-fp')]; if (!eq) return;
+        var t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        t.textContent = 'KKS ' + up + eq.kks + ' · ' + eq.code + ' — ' + eq.name;
+        g.insertBefore(t, g.firstChild);
+      });
       this._root = root;
     },
     update: function () {
@@ -346,6 +364,15 @@
       set('#ov-comm', commRail());
       set('#ov-health', healthRail());
       drawTrend(root);
+    },
+    setTheme: function (t) {
+      if (t !== 'hp' && t !== 'classic') return;
+      PIDTHEME = t;
+      var pid = document.querySelector('.pid--full');
+      if (pid) pid.classList.toggle('hmi-hp', t === 'hp');
+      document.querySelectorAll('.pid-theme [data-pidtheme]').forEach(function (b) {
+        b.classList.toggle('is-active', b.getAttribute('data-pidtheme') === t);
+      });
     }
   };
 })(window);
